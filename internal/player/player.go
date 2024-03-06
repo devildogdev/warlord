@@ -3,7 +3,7 @@ package player
 import (
     "errors"
 
-    "github.com/j-tew/warlord/store"
+    "github.com/j-tew/warlord/internal/store"
 )
 
 type Player struct {

@@ -4,8 +4,8 @@ import (
     "fmt"
     // "math/rand"
     
-    "github.com/j-tew/warlord/player"
-    "github.com/j-tew/warlord/store"
+    "github.com/j-tew/warlord/internal/player"
+    "github.com/j-tew/warlord/internal/store"
 )
 
 const intro string =  `
