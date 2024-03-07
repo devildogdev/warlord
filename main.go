@@ -1,11 +1,11 @@
 package main
 
 import (
-    "fmt"
-    // "math/rand"
-    
-    "github.com/j-tew/warlord/internal/player"
-    "github.com/j-tew/warlord/internal/store"
+	"fmt"
+	// "math/rand"
+
+	"github.com/j-tew/warlord/internal/player"
+	"github.com/j-tew/warlord/internal/store"
 )
 
 const intro string =  `
@@ -26,13 +26,13 @@ Watch out for law enforcement!
 const weeks int = 52
 const maxInvetory int = 100
 
-var locations =  [6]string{
-    "North America",
-    "South America",
-    "Europe",
-    "North Africa",
-    "South East Asia",
-    "Middle East",
+var locations =  map[string]store.Store{
+    "North America": store.New("North America"),
+    "South America": store.New("South America"),
+    "Europe": store.New("Europe"),
+    "North Africa": store.New("North Africa"),
+    "South East Asia": store.New("South East Asia"),
+    "Middle East": store.New("Middle East"),
 }
 
 func main() {
@@ -43,14 +43,15 @@ func main() {
     // fmt.Scanln(&name)
 
     p := player.New(name)
-    s := store.New(locations[0])
+    s := locations[p.Location]
 
-    fmt.Println(s)
-    fmt.Println(p)
-    p.BuyWeapon(s, 2)
-    fmt.Println(s)
-    fmt.Println(p)
+    fmt.Printf("%s: %v\n", s.Location, s.Inventory)
+    fmt.Printf("Player: %v\n", p)
+    p.BuyWeapon(s, "M4", 2)
+    fmt.Println("********************")
+    fmt.Printf("%s: %v\n", s.Location, s.Inventory)
+    fmt.Printf("Player: %v\n", p)
     p.Damage(20)
-    p.SellWeapon(s, 1)
-    fmt.Println(p)
+    p.SellWeapon(s, "M4", 1)
+    fmt.Printf("Player: %v\n", p)
 }

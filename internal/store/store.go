@@ -7,54 +7,35 @@ type Weapon struct {
 
 type Store struct {
     Location string
-    Inventory []Weapon
+    Inventory map[string][]Weapon
 }
 
-func New(location string) *Store {
-    return &Store{
+var models = map[string]int{
+    "G19": 600,
+    "1911": 1000,
+    "M4": 1400,
+    "AK-47": 2200,
+    "RPG": 15000,
+    "Mk19": 41000,
+    "M24": 18000,
+    "M107": 27000,
+    "M2": 62000,
+    "GAU-17": 250000,
+}
+
+func New(location string) Store {
+    s := Store{
         Location: location,
-        Inventory: []Weapon{
-            {
-                Model: "G19",
-                Price: 600,
-            },
-            {
-                Model: "1911",
-                Price: 1000,
-            },
-            {
-                Model: "M4",
-                Price: 1400,
-            },
-            {
-                Model: "AK-47",
-                Price: 2200,
-            },
-            {
-                Model: "RPG",
-                Price: 15000,
-            },
-            {
-                Model: "Mk19",
-                Price: 41000,
-            },
-            {
-                Model: "M24",
-                Price: 18000,
-            },
-            {
-                Model: "M107",
-                Price: 27000,
-            },
-            {
-                Model: "M2",
-                Price: 62000,
-            },
-            {
-                Model: "GAU-17",
-                Price: 250000,
-            },
-        },
+        Inventory: make(map[string][]Weapon),
+    }
+    for m, p := range models {
+        s.stockUp(m, p, 10)
+    }
+    return s
+}
+
+func (s *Store) stockUp(model string, price int, qty int) {
+    for i := 0; i < qty; i++ {
+        s.Inventory[model] = append(s.Inventory[model], Weapon{Model: model, Price: price})
     }
 }
-

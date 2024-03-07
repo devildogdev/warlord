@@ -7,10 +7,10 @@ import (
 )
 
 type Player struct {
-    name, location string
+    name, Location string
     health int8
     cash, bank int
-    inventory []store.Weapon
+    inventory map[string][]store.Weapon
 }
 
 func New(name string) Player {
@@ -19,40 +19,41 @@ func New(name string) Player {
         health: 100,
         cash: 15000,
         bank: 0,
-        inventory: []store.Weapon{},
-        location: "North America", 
+        inventory: make(map[string][]store.Weapon),
+        Location: "North America", 
     }
 }
 
-func (p *Player) BuyWeapon(s *store.Store, qty int) error {
+func (p *Player) BuyWeapon(s store.Store, model string, qty int) error {
     if qty <= 0 {
         return errors.New("Quantity must be greater than Zero!")
     }
-    cart := s.Inventory[:qty]
+    cart := s.Inventory[model][:qty]
     var cost int
     for _, w := range cart {
         cost += w.Price
     }
     if p.cash >= cost {
         p.cash -= cost
-        p.inventory = append(p.inventory, cart...)
+        s.Inventory[model] = s.Inventory[model][qty:]
+        p.inventory[model] = append(p.inventory[model], cart...)
     }
     return nil
 }
 
-func (p *Player) SellWeapon(s *store.Store, qty int) error {
+func (p *Player) SellWeapon(s store.Store, model string, qty int) error {
     if len(p.inventory) < 1 {
         return errors.New("You don't have any weapons to sell")
     } else if qty > len(p.inventory) {
         return errors.New("You cannot sell more than you have")
     }
     var profit int
-    sold := p.inventory[:qty]
+    sold := p.inventory[model][:qty]
     for _, w := range sold {
         profit += w.Price
     }
-    p.inventory = p.inventory[qty:]
-    s.Inventory = append(s.Inventory, sold...)
+    p.inventory[model] = p.inventory[model][qty:]
+    s.Inventory[model] = append(s.Inventory[model], sold...)
     return nil
 }
 
