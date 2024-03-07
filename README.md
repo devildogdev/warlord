@@ -82,7 +82,7 @@ You have one year (52 weeks) build your fortune. Watch out for law enforcement.
 - [X] Implement store and buying and selling functionality
 - [ ] Factor multipliers for prices
 - [ ] Random Events
-- [ ] 
+- [ ] Error handling for store (quantities)
 
 Need a way to create the stores, based on location.
 Create one every time location changes?
