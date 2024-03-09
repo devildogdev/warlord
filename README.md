@@ -4,6 +4,15 @@ A spin on the classic "Drug Wars" where you play as an arms dealer instead of a 
 
 ## *work in progress*
 
+## To Do & Notes
+
+- [X] Setup guns and player
+- [X] Implement store and buying and selling functionality
+- [ ] UI
+- [ ] Factor multipliers for prices
+- [ ] Random Events
+- [/] Error handling for store (quantities)
+
 ### Mechanics
 
 - Loan shark
@@ -75,32 +84,3 @@ You have one year (52 weeks) build your fortune. Watch out for law enforcement.
 ### Duration
 
 *52* weeks
-
-## To Do & Notes
-
-- [X] Setup guns and player
-- [X] Implement store and buying and selling functionality
-- [ ] Factor multipliers for prices
-- [ ] Random Events
-- [ ] Error handling for store (quantities)
-
-Need a way to create the stores, based on location.
-Create one every time location changes?
-Create all stores on init, then alter prices?
-One store map, location as keys, inventory as map with model as keys and slice of weapons.
-
-## Store
-{
-    location: "NA",
-    inventory: {
-        w1{, w2, w3}
-}
-
-stores := map\[location\]store{
-    "North America": \[\]weapon{
-        {
-            model: "G19",
-            price: 600,
-        }
-    }
-}
