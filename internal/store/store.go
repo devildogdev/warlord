@@ -1,12 +1,19 @@
 package store
 
+import (
+    "fmt"
+)
+
+const maxInventory int = 100
+
 type Weapon struct {
     Model string
     Price int
 }
 
 type Store struct {
-    Location string
+    Region string
+    Event string
     Inventory map[string][]Weapon
 }
 
@@ -23,19 +30,28 @@ var models = map[string]int{
     "GAU-17": 250000,
 }
 
-func New(location string) Store {
+func New(region string) Store {
     s := Store{
-        Location: location,
-        Inventory: make(map[string][]Weapon),
+        Region: region,
+        Inventory : make(map[string][]Weapon),
     }
     for m, p := range models {
-        s.stockUp(m, p, 10)
+        s.stockUp(m, p)
     }
     return s
 }
 
-func (s *Store) stockUp(model string, price int, qty int) {
-    for i := 0; i < qty; i++ {
-        s.Inventory[model] = append(s.Inventory[model], Weapon{Model: model, Price: price})
+func (s *Store) stockUp(model string, price int) {
+    stock := make([]Weapon, maxInventory)
+    for i := range stock {
+        stock[i] = Weapon{Model: model, Price: price}
+    }
+    s.Inventory[model] = stock
+}
+
+func (s Store) ShowInventory() {
+    for m, wl := range s.Inventory {
+        fmt.Printf("%s: %d\n", m, len(wl))
     }
 }
+
