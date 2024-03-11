@@ -41,7 +41,8 @@ var baseStyle = lipgloss.NewStyle().
     BorderForeground(lipgloss.Color("240"))
 
 type model struct {
-    table table.Model
+    playerTable table.Model
+    storeTable table.Model
 }
 
 func (m model) Init() tea.Cmd { return nil }
@@ -52,26 +53,31 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
     case tea.KeyMsg:
         switch msg.String() {
         case "esc":
-            if m.table.Focused() {
+            if m.playerTable.Focused() {
                 // Blur not working. May be terminal.
-                m.table.Blur()
+                m.storeTable.Focus()
+            } else if m.storeTable.Focused() {
+                m.playerTable.Focus()
             } else {
-                m.table.Focus()
+                m.playerTable.Focus()
             }
         case "q", "ctrl+c":
             return m, tea.Quit
         case "enter":
-            return m, tea.Batch(
-                tea.Printf("You bought a %s!", m.table.SelectedRow()[0]),
-            )
+            if m.playerTable.Focused() {
+                return m, tea.Batch(
+                    tea.Printf("You bought a %s!", m.playerTable.SelectedRow()[0]),
+                )
+            }
         }
     }
-    m.table, cmd = m.table.Update(msg)
+    m.playerTable, cmd = m.playerTable.Update(msg)
+    m.storeTable, cmd = m.storeTable.Update(msg)
     return m, cmd
 }
 
 func (m model) View() string {
-    return baseStyle.Render(m.table.View()) + "\n"
+    return baseStyle.Render(m.playerTable.View()) + "\n" + baseStyle.Render(m.storeTable.View()) + "\n"
 }
 
 func main() {
@@ -92,7 +98,14 @@ func main() {
     }
 
     // Figure out how to render more than one table
-    t := table.New(
+    storeT := table.New(
+        table.WithColumns(columns),
+        table.WithRows(rows),
+        table.WithFocused(true),
+        table.WithHeight(7),
+    )
+
+    playerT := table.New(
         table.WithColumns(columns),
         table.WithRows(rows),
         table.WithFocused(true),
@@ -109,9 +122,10 @@ func main() {
         Foreground(lipgloss.Color("229")).
         Background(lipgloss.Color("57")).
         Bold(true)
-    t.SetStyles(s)
+    storeT.SetStyles(s)
+    playerT.SetStyles(s)
 
-    m := model{t}
+    m := model{playerT, storeT}
     if _, err := tea.NewProgram(m).Run(); err != nil {
         fmt.Println("Error running program:", err)
         os.Exit(1)
