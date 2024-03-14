@@ -7,9 +7,9 @@ import (
 
     "github.com/j-tew/warlord/internal/player"
 
-    "github.com/charmbracelet/bubbles/table"
     tea "github.com/charmbracelet/bubbletea"
     "github.com/charmbracelet/lipgloss"
+    "github.com/charmbracelet/lipgloss/table"
 )
 
 const (
@@ -35,14 +35,9 @@ type storage interface {
     ShowInventory()
 }
 
-// Need to look at lipgloss docs
-var baseStyle = lipgloss.NewStyle().
-    BorderStyle(lipgloss.NormalBorder()).
-    BorderForeground(lipgloss.Color("240"))
-
 type model struct {
-    playerTable table.Model
-    storeTable table.Model
+    playerTable *table.Table
+    storeTable *table.Table
 }
 
 func (m model) Init() tea.Cmd { return nil }
@@ -52,32 +47,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
     switch msg := msg.(type) {
     case tea.KeyMsg:
         switch msg.String() {
-        case "esc":
-            if m.playerTable.Focused() {
-                // Blur not working. May be terminal.
-                m.storeTable.Focus()
-            } else if m.storeTable.Focused() {
-                m.playerTable.Focus()
-            } else {
-                m.playerTable.Focus()
-            }
         case "q", "ctrl+c":
             return m, tea.Quit
-        case "enter":
-            if m.playerTable.Focused() {
-                return m, tea.Batch(
-                    tea.Printf("You bought a %s!", m.playerTable.SelectedRow()[0]),
-                )
-            }
         }
     }
-    m.playerTable, cmd = m.playerTable.Update(msg)
-    m.storeTable, cmd = m.storeTable.Update(msg)
     return m, cmd
 }
 
 func (m model) View() string {
-    return baseStyle.Render(m.playerTable.View()) + "\n" + baseStyle.Render(m.storeTable.View()) + "\n"
+    return m.storeTable.Render()
 }
 
 func main() {
@@ -85,47 +63,20 @@ func main() {
     // Not sure I like having stores in player package
     st := player.Stores[p.Region]
 
-    columns := []table.Column{
-        {Title: "Model", Width: 6},
-        {Title: "Qty", Width: 3},
-        {Title: "Price", Width: 6},
-    }
 
-    var rows []table.Row
+    var rows [][]string
     for wm, wl := range st.Inventory {
-        // Row only accepts strings
-        rows = append(rows, table.Row{wm, strconv.Itoa(len(wl)), strconv.Itoa(wl[0].Price)}) 
+        rows = append(rows, []string{wm, strconv.Itoa(len(wl)), strconv.Itoa(wl[0].Price)}) 
     }
 
     // Figure out how to render more than one table
-    storeT := table.New(
-        table.WithColumns(columns),
-        table.WithRows(rows),
-        table.WithFocused(true),
-        table.WithHeight(7),
-    )
+    storeT := table.New().
+        Border(lipgloss.NormalBorder()).
+        BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
+        Headers("Model", "Qty", "Price").
+        Rows(rows...)
 
-    playerT := table.New(
-        table.WithColumns(columns),
-        table.WithRows(rows),
-        table.WithFocused(true),
-        table.WithHeight(7),
-    )
-
-    s := table.DefaultStyles()
-    s.Header = s.Header.
-        BorderStyle(lipgloss.NormalBorder()).
-        BorderForeground(lipgloss.Color("240")).
-        BorderBottom(true).
-        Bold(true)
-    s.Selected = s.Selected.
-        Foreground(lipgloss.Color("229")).
-        Background(lipgloss.Color("57")).
-        Bold(true)
-    storeT.SetStyles(s)
-    playerT.SetStyles(s)
-
-    m := model{playerT, storeT}
+    m := model{storeTable: storeT}
     if _, err := tea.NewProgram(m).Run(); err != nil {
         fmt.Println("Error running program:", err)
         os.Exit(1)
