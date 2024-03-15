@@ -3,12 +3,11 @@ package main
 import (
     "fmt"
     "os"
-    "strconv"
 
     "github.com/j-tew/warlord/internal/player"
+    "github.com/j-tew/warlord/internal/store"
 
     tea "github.com/charmbracelet/bubbletea"
-    "github.com/charmbracelet/lipgloss"
     "github.com/charmbracelet/lipgloss/table"
 )
 
@@ -55,28 +54,18 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-    return m.storeTable.Render()
+    return m.storeTable.Render() + "\n" + m.playerTable.Render()
 }
 
 func main() {
     p := player.New("Outlaw")
     // Not sure I like having stores in player package
-    st := player.Stores[p.Region]
+    s := store.New(p.Region)
 
-
-    var rows [][]string
-    for wm, wl := range st.Inventory {
-        rows = append(rows, []string{wm, strconv.Itoa(len(wl)), strconv.Itoa(wl[0].Price)}) 
+    m := model{
+        playerTable: p.GetInventory(),
+        storeTable: s.GetInventory(),
     }
-
-    // Figure out how to render more than one table
-    storeT := table.New().
-        Border(lipgloss.NormalBorder()).
-        BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
-        Headers("Model", "Qty", "Price").
-        Rows(rows...)
-
-    m := model{storeTable: storeT}
     if _, err := tea.NewProgram(m).Run(); err != nil {
         fmt.Println("Error running program:", err)
         os.Exit(1)

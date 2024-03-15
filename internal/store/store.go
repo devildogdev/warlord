@@ -1,57 +1,59 @@
 package store
 
 import (
-    "fmt"
+    "strconv"
+
+    "github.com/j-tew/warlord/internal/weapon"
+
+    "github.com/charmbracelet/lipgloss"
+    "github.com/charmbracelet/lipgloss/table"
 )
 
 const maxInventory int = 100
 
-type Weapon struct {
-    Model string
-    Price int
+var Regions = []string{
+    "North America",
+    "South America",
+    "South East Asia",
+    "North Africa",
+    "Middle East",
+    "Europe",
 }
 
 type Store struct {
     Region string
     Event string
-    Inventory map[string][]Weapon
+    Inventory map[string][]weapon.Weapon
 }
 
-var models = map[string]int{
-    "G19": 600,
-    "1911": 1000,
-    "M4": 1400,
-    "AK-47": 2200,
-    "RPG": 15000,
-    "Mk19": 41000,
-    "M24": 18000,
-    "M107": 27000,
-    "M2": 62000,
-    "GAU-17": 250000,
-}
-
-func New(region string) Store {
-    s := Store{
+func New(region string) *Store {
+    s := &Store{
         Region: region,
-        Inventory : make(map[string][]Weapon),
+        Inventory : make(map[string][]weapon.Weapon),
     }
-    for m, p := range models {
+    for m, p := range weapon.Models {
         s.stockUp(m, p)
     }
     return s
 }
 
 func (s *Store) stockUp(model string, price int) {
-    stock := make([]Weapon, maxInventory)
+    stock := make([]weapon.Weapon, maxInventory)
     for i := range stock {
-        stock[i] = Weapon{Model: model, Price: price}
+        stock[i] = weapon.Weapon{Model: model, Price: price}
     }
     s.Inventory[model] = stock
 }
 
-func (s Store) ShowInventory() {
-    for m, wl := range s.Inventory {
-        fmt.Printf("%s: %d\n", m, len(wl))
+func (s *Store) GetInventory() *table.Table {
+    var rows [][]string
+    for wm, wl := range s.Inventory {
+        rows = append(rows, []string{wm, strconv.Itoa(len(wl)), strconv.Itoa(wl[0].Price)}) 
     }
+    return table.New().
+        Border(lipgloss.NormalBorder()).
+        BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
+        Headers("Model", "Qty", "Price").
+        Rows(rows...)
 }
 

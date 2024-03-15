@@ -2,48 +2,48 @@ package player
 
 import (
     "errors"
-    "fmt"
+    "strconv"
+    "slices"
 
     "github.com/j-tew/warlord/internal/store"
+    "github.com/j-tew/warlord/internal/weapon"
+
+    "github.com/charmbracelet/lipgloss"
+    "github.com/charmbracelet/lipgloss/table"
 )
-
-var Stores =  map[string]store.Store{
-    "North America": store.New("North America"),
-    "South America": store.New("South America"),
-    "Europe": store.New("Europe"),
-    "North Africa": store.New("North Africa"),
-    "South East Asia": store.New("South East Asia"),
-    "Middle East": store.New("Middle East"),
-}
-
 
 type Player struct {
     Name, Region string
     Health int8
     Cash, Bank int
-    Inventory map[string][]store.Weapon
+    Inventory map[string][]weapon.Weapon
 }
 
-func New(name string) Player {
-    return Player{
+func New(name string) *Player {
+    return &Player{
         Name: name,
         Health: 100,
         Cash: 15000,
         Bank: 0,
-        Inventory: make(map[string][]store.Weapon),
+        Inventory: make(map[string][]weapon.Weapon),
         Region: "North America", 
     }
 }
 
-func (p Player) ShowInventory() {
-    for m, wl := range p.Inventory {
-        fmt.Printf("%s: %d\n", m, len(wl))
+func (p *Player) GetInventory() *table.Table {
+    var rows [][]string
+    for wm, wl := range p.Inventory {
+        rows = append(rows, []string{wm, strconv.Itoa(len(wl))}) 
     }
+    return table.New().
+        Border(lipgloss.NormalBorder()).
+        BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
+        Headers("Model", "Qty").
+        Rows(rows...)
 }
 
 func (p *Player) Move(region string) error {
-    _, exists := Stores[region]
-    if exists {
+    if slices.Contains(store.Regions, region) {
         p.Region = region
     } else {
         return errors.New("Invalid region")
