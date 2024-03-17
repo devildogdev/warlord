@@ -1,14 +1,14 @@
 package main
 
 import (
-    "fmt"
-    "os"
+	"fmt"
+	"os"
 
-    "github.com/j-tew/warlord/internal/player"
-    "github.com/j-tew/warlord/internal/store"
+	"github.com/j-tew/warlord/internal/player"
+	"github.com/j-tew/warlord/internal/store"
 
-    tea "github.com/charmbracelet/bubbletea"
-    "github.com/charmbracelet/lipgloss/table"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 const (
@@ -35,8 +35,8 @@ type storage interface {
 }
 
 type model struct {
-    playerTable *table.Table
-    storeTable *table.Table
+    player *player.Player
+    store *store.Store
 }
 
 func (m model) Init() tea.Cmd { return nil }
@@ -54,19 +54,33 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-    return m.storeTable.Render() + "\n" + m.playerTable.Render()
+    labelStyle := lipgloss.NewStyle().
+        Align(lipgloss.Center).
+        Bold(true)
+
+    s := lipgloss.JoinVertical(
+        lipgloss.Center,
+        labelStyle.Render(m.player.Region),
+        m.store.GetInventory().Render(),
+    )
+
+    p := lipgloss.JoinVertical(
+        lipgloss.Center,
+        labelStyle.Render(m.player.Name),
+        m.player.GetInventory().Render(),
+    )
+    return lipgloss.JoinVertical(lipgloss.Left, s, p)
 }
 
 func main() {
     p := player.New("Outlaw")
-    // Not sure I like having stores in player package
     s := store.New(p.Region)
 
     m := model{
-        playerTable: p.GetInventory(),
-        storeTable: s.GetInventory(),
+        player: p,
+        store: s,
     }
-    if _, err := tea.NewProgram(m).Run(); err != nil {
+    if _, err := tea.NewProgram(m, tea.WithAltScreen()).Run(); err != nil {
         fmt.Println("Error running program:", err)
         os.Exit(1)
     }

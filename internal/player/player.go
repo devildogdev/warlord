@@ -36,6 +36,16 @@ func (p *Player) GetInventory() *table.Table {
         rows = append(rows, []string{wm, strconv.Itoa(len(wl))}) 
     }
     return table.New().
+	Width(50).
+	StyleFunc(func(row, col int) lipgloss.Style {
+	    if row == 0 {
+		return lipgloss.NewStyle().
+		    Align(lipgloss.Center).
+		    Bold(true)
+	    } else {
+	        return lipgloss.Style{}
+	    }
+	}).
         Border(lipgloss.NormalBorder()).
         BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
         Headers("Model", "Qty").

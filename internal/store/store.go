@@ -51,6 +51,16 @@ func (s *Store) GetInventory() *table.Table {
         rows = append(rows, []string{wm, strconv.Itoa(len(wl)), strconv.Itoa(wl[0].Price)}) 
     }
     return table.New().
+	Width(50).
+	StyleFunc(func(row, col int) lipgloss.Style {
+	    if row == 0 {
+		return lipgloss.NewStyle().
+		    Align(lipgloss.Center).
+		    Bold(true)
+	    } else {
+	        return lipgloss.Style{}
+	    }
+	}).
         Border(lipgloss.NormalBorder()).
         BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
         Headers("Model", "Qty", "Price").
