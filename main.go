@@ -9,6 +9,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/lipgloss/table"
 )
 
 const (
@@ -31,7 +32,11 @@ Watch out for law enforcement!
 )
 
 type storage interface {
-    ShowInventory()
+    InventoryTable() *table.Table
+}
+
+func GetInventory(s storage) string {
+    return s.InventoryTable().Render()
 }
 
 type model struct {
@@ -61,13 +66,13 @@ func (m model) View() string {
     s := lipgloss.JoinVertical(
         lipgloss.Center,
         labelStyle.Render(m.player.Region),
-        m.store.GetInventory().Render(),
+        GetInventory(m.store),
     )
 
     p := lipgloss.JoinVertical(
         lipgloss.Center,
         labelStyle.Render(m.player.Name),
-        m.player.GetInventory().Render(),
+        GetInventory(m.player),
     )
     return lipgloss.JoinVertical(lipgloss.Left, s, p)
 }

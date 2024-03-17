@@ -45,7 +45,7 @@ func (s *Store) stockUp(model string, price int) {
     s.Inventory[model] = stock
 }
 
-func (s *Store) GetInventory() *table.Table {
+func (s *Store) InventoryTable() *table.Table {
     var rows [][]string
     for wm, wl := range s.Inventory {
         rows = append(rows, []string{wm, strconv.Itoa(len(wl)), strconv.Itoa(wl[0].Price)}) 

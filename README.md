@@ -12,6 +12,8 @@ A spin on the classic "Drug Wars" where you play as an arms dealer instead of a 
 - [ ] Factor multipliers for prices
 - [ ] Random Events
 - [/] Error handling for store (quantities)
+- [ ] Refactor the Inventory function to one function instead of two (one for player, and one for store)
+- [ ] Maybe make the region more global, instead of binded to the player ???
 
 ### Mechanics
 

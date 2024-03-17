@@ -30,7 +30,7 @@ func New(name string) *Player {
     }
 }
 
-func (p *Player) GetInventory() *table.Table {
+func (p *Player) InventoryTable() *table.Table {
     var rows [][]string
     for wm, wl := range p.Inventory {
         rows = append(rows, []string{wm, strconv.Itoa(len(wl))}) 
