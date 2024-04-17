@@ -20,7 +20,7 @@ type Player struct {
 }
 
 func New(name string) *Player {
-    return &Player{
+    p := &Player{
         Name: name,
         Health: 100,
         Cash: 15000,
@@ -28,6 +28,12 @@ func New(name string) *Player {
         Inventory: make(map[string][]weapon.Weapon),
         Region: "North America", 
     }
+
+    for m := range weapon.Models {
+        p.Inventory[m] = make([]weapon.Weapon, 0)
+    }
+
+    return p
 }
 
 func (p *Player) InventoryTable() *table.Table {
@@ -36,7 +42,6 @@ func (p *Player) InventoryTable() *table.Table {
         rows = append(rows, []string{wm, strconv.Itoa(len(wl))}) 
     }
     return table.New().
-	Width(50).
 	StyleFunc(func(row, col int) lipgloss.Style {
 	    if row == 0 {
 		return lipgloss.NewStyle().

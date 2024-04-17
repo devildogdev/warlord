@@ -51,7 +51,6 @@ func (s *Store) InventoryTable() *table.Table {
         rows = append(rows, []string{wm, strconv.Itoa(len(wl)), strconv.Itoa(wl[0].Price)}) 
     }
     return table.New().
-	Width(50).
 	StyleFunc(func(row, col int) lipgloss.Style {
 	    if row == 0 {
 		return lipgloss.NewStyle().

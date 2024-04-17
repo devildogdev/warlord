@@ -31,6 +31,8 @@ Watch out for law enforcement!
     maxInvetory int = 100
 )
 
+var width, height int
+
 type storage interface {
     InventoryTable() *table.Table
 }
@@ -54,13 +56,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
         case "q", "ctrl+c":
             return m, tea.Quit
         }
+    case tea.WindowSizeMsg:
+        width = msg.Width
+        height = msg.Height
     }
     return m, cmd
 }
 
 func (m model) View() string {
     labelStyle := lipgloss.NewStyle().
-        Align(lipgloss.Center).
+        MarginBottom(1).
         Bold(true)
 
     s := lipgloss.JoinVertical(
@@ -74,7 +79,12 @@ func (m model) View() string {
         labelStyle.Render(m.player.Name),
         GetInventory(m.player),
     )
-    return lipgloss.JoinVertical(lipgloss.Left, s, p)
+
+    style := lipgloss.NewStyle().
+        Width(width).
+        Height(height).
+        Align(lipgloss.Center, lipgloss.Center)
+    return style.Render(lipgloss.JoinHorizontal(lipgloss.Top, s, p))
 }
 
 func main() {
