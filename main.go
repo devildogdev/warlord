@@ -8,6 +8,7 @@ import (
 	"github.com/j-tew/warlord/internal/store"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
 )
@@ -37,13 +38,23 @@ type storage interface {
     InventoryTable() *table.Table
 }
 
-func GetInventory(s storage) string {
-    return s.InventoryTable().Render()
+func getInventory(s storage, label string) string {
+    tableStyle := lipgloss.NewStyle().Margin(5)
+    labelStyle := lipgloss.NewStyle().
+        MarginBottom(1).
+        Bold(true)
+
+    return lipgloss.JoinVertical(
+        lipgloss.Center,
+        labelStyle.Render(label),
+        tableStyle.Render(s.InventoryTable().Render()),
+    )
 }
 
 type model struct {
     player *player.Player
-    store *store.Store
+    store  *store.Store
+    list   list.Model
 }
 
 func (m model) Init() tea.Cmd { return nil }
@@ -64,27 +75,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-    labelStyle := lipgloss.NewStyle().
-        MarginBottom(1).
-        Bold(true)
+    s := getInventory(m.store, m.store.Region)
 
-    s := lipgloss.JoinVertical(
-        lipgloss.Center,
-        labelStyle.Render(m.player.Region),
-        GetInventory(m.store),
-    )
+    p := getInventory(m.player, m.player.Name)
 
-    p := lipgloss.JoinVertical(
-        lipgloss.Center,
-        labelStyle.Render(m.player.Name),
-        GetInventory(m.player),
-    )
-
-    style := lipgloss.NewStyle().
+    screenStyle := lipgloss.NewStyle().
         Width(width).
         Height(height).
         Align(lipgloss.Center, lipgloss.Center)
-    return style.Render(lipgloss.JoinHorizontal(lipgloss.Top, s, p))
+    return screenStyle.Render(lipgloss.JoinHorizontal(lipgloss.Top, s, p))
 }
 
 func main() {
