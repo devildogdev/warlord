@@ -1,16 +1,18 @@
 package main
 
 import (
-	"fmt"
-	"os"
+    "fmt"
+    "os"
+    "io"
+    "strings"
 
-	"github.com/j-tew/warlord/internal/player"
-	"github.com/j-tew/warlord/internal/store"
+    "github.com/j-tew/warlord/internal/player"
+    "github.com/j-tew/warlord/internal/store"
 
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/bubbles/list"
-	"github.com/charmbracelet/lipgloss"
-	"github.com/charmbracelet/lipgloss/table"
+    tea "github.com/charmbracelet/bubbletea"
+    "github.com/charmbracelet/bubbles/list"
+    "github.com/charmbracelet/lipgloss"
+    "github.com/charmbracelet/lipgloss/table"
 )
 
 const (
@@ -33,22 +35,51 @@ Watch out for law enforcement!
 )
 
 var width, height int
+var (
+    itemStyle         = lipgloss.NewStyle().AlignHorizontal(lipgloss.Center)
+    selectedItemStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("170")).AlignHorizontal(lipgloss.Center)
+)
 
-type storage interface {
-    InventoryTable() *table.Table
-}
-
-func getInventory(s storage, label string) string {
+func getInventory(i table.Table, label string) string {
     tableStyle := lipgloss.NewStyle().Margin(5)
     labelStyle := lipgloss.NewStyle().
         MarginBottom(1).
         Bold(true)
 
-    return lipgloss.JoinVertical(
+    return tableStyle.Render(
+        lipgloss.JoinVertical(
         lipgloss.Center,
         labelStyle.Render(label),
-        tableStyle.Render(s.InventoryTable().Render()),
+        i.Render(),
+        ),
     )
+}
+
+type item string
+
+func (i item) FilterValue() string { return "" }
+
+type itemDelegate struct{}
+
+func (d itemDelegate) Height() int                             { return 1 }
+func (d itemDelegate) Spacing() int                            { return 0 }
+func (d itemDelegate) Update(_ tea.Msg, _ *list.Model) tea.Cmd { return nil }
+func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
+    i, ok := listItem.(item)
+    if !ok {
+            return
+    }
+
+    str := string(i)
+
+    fn := itemStyle.Render
+    if index == m.Index() {
+            fn = func(s ...string) string {
+                    return selectedItemStyle.Render(strings.Join(s, " "))
+            }
+    }
+
+    fmt.Fprint(w, fn(str))
 }
 
 type model struct {
@@ -71,29 +102,53 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
         width = msg.Width
         height = msg.Height
     }
+    m.list, cmd = m.list.Update(msg)
     return m, cmd
 }
 
 func (m model) View() string {
-    s := getInventory(m.store, m.store.Region)
+    s := m.store
+    p := m.player
 
-    p := getInventory(m.player, m.player.Name)
+    sInventory := getInventory(*s.InventoryTable, s.Region)
+    pInventory := getInventory(*p.InventoryTable, p.Name)
+    choices := m.list.View()
+    stats := fmt.Sprintf("Health: %d\nBank: $%d\nCash: $%d", p.Health, p.Cash, p.Bank)
 
     screenStyle := lipgloss.NewStyle().
         Width(width).
         Height(height).
-        Align(lipgloss.Center, lipgloss.Center)
-    return screenStyle.Render(lipgloss.JoinHorizontal(lipgloss.Top, s, p))
+        Align(lipgloss.Center)
+
+    tables := lipgloss.JoinHorizontal(
+        lipgloss.Top,
+        lipgloss.JoinVertical(lipgloss.Left, sInventory, choices),
+        lipgloss.JoinVertical(lipgloss.Right, pInventory, stats),
+    )
+
+    return screenStyle.Render(tables)
 }
 
 func main() {
     p := player.New("Outlaw")
     s := store.New(p.Region)
 
+    items := []list.Item{
+        item("Buy"),
+        item("Sell"),
+        item("Travel"),
+    }
+
     m := model{
         player: p,
         store: s,
+        list: list.New(items, itemDelegate{}, 8, 10),
     }
+    m.list.SetShowHelp(false)
+    m.list.SetShowTitle(false)
+    m.list.SetShowStatusBar(false)
+    m.list.SetFilteringEnabled(false)
+
     if _, err := tea.NewProgram(m, tea.WithAltScreen()).Run(); err != nil {
         fmt.Println("Error running program:", err)
         os.Exit(1)

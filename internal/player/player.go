@@ -17,6 +17,7 @@ type Player struct {
     Health int8
     Cash, Bank int
     Inventory map[string][]weapon.Weapon
+    InventoryTable *table.Table
 }
 
 func New(name string) *Player {
@@ -32,29 +33,28 @@ func New(name string) *Player {
     for m := range weapon.Models {
         p.Inventory[m] = make([]weapon.Weapon, 0)
     }
-
-    return p
-}
-
-func (p *Player) InventoryTable() *table.Table {
     var rows [][]string
     for wm, wl := range p.Inventory {
         rows = append(rows, []string{wm, strconv.Itoa(len(wl))}) 
     }
-    return table.New().
+    p.InventoryTable = table.New().
 	StyleFunc(func(row, col int) lipgloss.Style {
 	    if row == 0 {
 		return lipgloss.NewStyle().
 		    Align(lipgloss.Center).
 		    Bold(true)
 	    } else {
-	        return lipgloss.Style{}
+	        return lipgloss.NewStyle().
+                PaddingLeft(1)
 	    }
 	}).
         Border(lipgloss.NormalBorder()).
         BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
+        Width(30).
         Headers("Model", "Qty").
         Rows(rows...)
+
+    return p
 }
 
 func (p *Player) Move(region string) error {
