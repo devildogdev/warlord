@@ -1,18 +1,19 @@
 package main
 
 import (
-    "fmt"
-    "os"
-    "io"
-    "strings"
+	"fmt"
+	"io"
+	"log"
+	"os"
+	"strings"
 
-    "github.com/j-tew/warlord/internal/player"
-    "github.com/j-tew/warlord/internal/store"
+	"github.com/j-tew/warlord/internal/player"
+	"github.com/j-tew/warlord/internal/store"
 
-    tea "github.com/charmbracelet/bubbletea"
-    "github.com/charmbracelet/bubbles/list"
-    "github.com/charmbracelet/lipgloss"
-    "github.com/charmbracelet/lipgloss/table"
+	"github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/table"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 const (
@@ -36,24 +37,13 @@ Watch out for law enforcement!
 
 var width, height int
 var (
-    itemStyle         = lipgloss.NewStyle().AlignHorizontal(lipgloss.Center)
+    itemStyle = lipgloss.NewStyle().AlignHorizontal(lipgloss.Center)
     selectedItemStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("170")).AlignHorizontal(lipgloss.Center)
-)
-
-func getInventory(i table.Table, label string) string {
-    tableStyle := lipgloss.NewStyle().Margin(5)
-    labelStyle := lipgloss.NewStyle().
+    tableStyle = lipgloss.NewStyle().Margin(5)
+    labelStyle = lipgloss.NewStyle().
         MarginBottom(1).
         Bold(true)
-
-    return tableStyle.Render(
-        lipgloss.JoinVertical(
-        lipgloss.Center,
-        labelStyle.Render(label),
-        i.Render(),
-        ),
-    )
-}
+)
 
 type item string
 
@@ -61,8 +51,8 @@ func (i item) FilterValue() string { return "" }
 
 type itemDelegate struct{}
 
-func (d itemDelegate) Height() int                             { return 1 }
-func (d itemDelegate) Spacing() int                            { return 0 }
+func (d itemDelegate) Height() int { return 1 }
+func (d itemDelegate) Spacing() int { return 0 }
 func (d itemDelegate) Update(_ tea.Msg, _ *list.Model) tea.Cmd { return nil }
 func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
     i, ok := listItem.(item)
@@ -86,23 +76,64 @@ type model struct {
     player *player.Player
     store  *store.Store
     list   list.Model
+    choice string
 }
 
 func (m model) Init() tea.Cmd { return nil }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
     var cmd tea.Cmd
+    var w table.Row
+    s := m.store
+    p := m.player
     switch msg := msg.(type) {
     case tea.KeyMsg:
         switch msg.String() {
         case "q", "ctrl+c":
             return m, tea.Quit
+        case "enter":
+            if s.InventoryTable.Focused() {
+                w = s.InventoryTable.SelectedRow()
+                err := p.BuyWeapon(s, w[0], 1)
+                if err != nil {
+                    log.Fatal("No buy")
+                }
+            } else if p.InventoryTable.Focused() {
+                w = p.InventoryTable.SelectedRow()
+                err := p.SellWeapon(s, w[0], 1)
+                if err != nil {
+                    log.Fatal("No sell")
+                }
+            } else {
+                i, ok := m.list.SelectedItem().(item)
+                if ok {
+                    m.choice = string(i)
+                }
+            }
         }
     case tea.WindowSizeMsg:
         width = msg.Width
         height = msg.Height
     }
-    m.list, cmd = m.list.Update(msg)
+
+    switch m.choice {
+        case "Buy":
+            m.store.InventoryTable.Focus()
+        
+        case "Sell":
+            m.player.InventoryTable.Focus()
+    }
+
+    if s.InventoryTable.Focused() {
+        s.InventoryTable, cmd = s.InventoryTable.Update(msg)
+    } else if p.InventoryTable.Focused() {
+        p.InventoryTable, cmd = p.InventoryTable.Update(msg)
+    } else {
+        m.list, cmd = m.list.Update(msg)
+    }
+    if len(w) > 0 {
+        fmt.Println(s.Inventory[w[0]])
+    }
     return m, cmd
 }
 
@@ -110,20 +141,45 @@ func (m model) View() string {
     s := m.store
     p := m.player
 
-    sInventory := getInventory(*s.InventoryTable, s.Region)
-    pInventory := getInventory(*p.InventoryTable, p.Name)
     choices := m.list.View()
+    choicesStyle := lipgloss.NewStyle().
+        AlignHorizontal(lipgloss.Left).
+        MarginTop(5)
+
     stats := fmt.Sprintf("Health: %d\nBank: $%d\nCash: $%d", p.Health, p.Cash, p.Bank)
+    statsStyle := lipgloss.NewStyle().
+        AlignHorizontal(lipgloss.Right).
+        MarginTop(5)
 
     screenStyle := lipgloss.NewStyle().
         Width(width).
         Height(height).
-        Align(lipgloss.Center)
+        Align(lipgloss.Center, lipgloss.Center)
+
+    playerStyle := lipgloss.NewStyle().MarginLeft(5)
+
+    playerTable := playerStyle.Render(
+        lipgloss.JoinVertical(
+        lipgloss.Center,
+        labelStyle.Render(p.Name),
+        p.InventoryTable.View(),
+        ),
+    )
+
+    storeStyle := lipgloss.NewStyle().MarginRight(5)
+
+    storeTable := storeStyle.Render(
+        lipgloss.JoinVertical(
+        lipgloss.Center,
+        labelStyle.Render(s.Region),
+        s.InventoryTable.View(),
+        ),
+    )
 
     tables := lipgloss.JoinHorizontal(
         lipgloss.Top,
-        lipgloss.JoinVertical(lipgloss.Left, sInventory, choices),
-        lipgloss.JoinVertical(lipgloss.Right, pInventory, stats),
+        lipgloss.JoinVertical(lipgloss.Left, storeTable, choicesStyle.Render(choices)),
+        lipgloss.JoinVertical(lipgloss.Right, playerTable, statsStyle.Render(stats)),
     )
 
     return screenStyle.Render(tables)

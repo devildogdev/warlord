@@ -9,7 +9,7 @@ import (
     "github.com/j-tew/warlord/internal/weapon"
 
     "github.com/charmbracelet/lipgloss"
-    "github.com/charmbracelet/lipgloss/table"
+    "github.com/charmbracelet/bubbles/table"
 )
 
 type Player struct {
@@ -17,7 +17,7 @@ type Player struct {
     Health int8
     Cash, Bank int
     Inventory map[string][]weapon.Weapon
-    InventoryTable *table.Table
+    InventoryTable table.Model
 }
 
 func New(name string) *Player {
@@ -33,26 +33,32 @@ func New(name string) *Player {
     for m := range weapon.Models {
         p.Inventory[m] = make([]weapon.Weapon, 0)
     }
-    var rows [][]string
+    var rows []table.Row
     for wm, wl := range p.Inventory {
-        rows = append(rows, []string{wm, strconv.Itoa(len(wl))}) 
+        rows = append(rows, table.Row{wm, strconv.Itoa(len(wl))}) 
     }
-    p.InventoryTable = table.New().
-	StyleFunc(func(row, col int) lipgloss.Style {
-	    if row == 0 {
-		return lipgloss.NewStyle().
-		    Align(lipgloss.Center).
-		    Bold(true)
-	    } else {
-	        return lipgloss.NewStyle().
-                PaddingLeft(1)
-	    }
-	}).
-        Border(lipgloss.NormalBorder()).
-        BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
-        Width(30).
-        Headers("Model", "Qty").
-        Rows(rows...)
+
+    columns := []table.Column{
+        {Title: "Model", Width: 10},
+        {Title: "Qty", Width: 10},
+    }
+
+    p.InventoryTable = table.New(
+            table.WithColumns(columns),
+            table.WithRows(rows),
+            table.WithHeight(15),
+        )
+    s := table.DefaultStyles()
+    s.Header = s.Header.
+            BorderStyle(lipgloss.NormalBorder()).
+            BorderForeground(lipgloss.Color("240")).
+            BorderBottom(true).
+            Bold(false)
+    s.Selected = s.Selected.
+            Foreground(lipgloss.Color("229")).
+            Background(lipgloss.Color("57")).
+            Bold(false)
+    p.InventoryTable.SetStyles(s)
 
     return p
 }
@@ -66,7 +72,7 @@ func (p *Player) Move(region string) error {
     return nil
 }
 
-func (p *Player) BuyWeapon(s store.Store, model string, qty int) error {
+func (p *Player) BuyWeapon(s *store.Store, model string, qty int) error {
     if qty <= 0 {
         return errors.New("Quantity must be greater than Zero!")
     }
@@ -83,7 +89,7 @@ func (p *Player) BuyWeapon(s store.Store, model string, qty int) error {
     return nil
 }
 
-func (p *Player) SellWeapon(s store.Store, model string, qty int) error {
+func (p *Player) SellWeapon(s *store.Store, model string, qty int) error {
     if len(p.Inventory) < 1 {
         return errors.New("You don't have any weapons to sell")
     } else if qty > len(p.Inventory) {

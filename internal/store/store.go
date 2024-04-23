@@ -6,7 +6,7 @@ import (
     "github.com/j-tew/warlord/internal/weapon"
 
     "github.com/charmbracelet/lipgloss"
-    "github.com/charmbracelet/lipgloss/table"
+    "github.com/charmbracelet/bubbles/table"
 )
 
 const maxInventory int = 100
@@ -24,7 +24,7 @@ type Store struct {
     Region string
     Event string
     Inventory map[string][]weapon.Weapon
-    InventoryTable *table.Table
+    InventoryTable table.Model
 }
 
 func New(region string) *Store {
@@ -35,26 +35,34 @@ func New(region string) *Store {
     for m, p := range weapon.Models {
         s.stockUp(m, p)
     }
-    var rows [][]string
+    var rows []table.Row
     for wm, wl := range s.Inventory {
-        rows = append(rows, []string{wm, strconv.Itoa(len(wl)), strconv.Itoa(wl[0].Price)}) 
+        rows = append(rows, table.Row{wm, strconv.Itoa(len(wl)), strconv.Itoa(wl[0].Price)}) 
     }
-    s.InventoryTable = table.New().
-	StyleFunc(func(row, col int) lipgloss.Style {
-	    if row == 0 {
-		return lipgloss.NewStyle().
-		    Align(lipgloss.Center).
-		    Bold(true)
-	    } else {
-	        return lipgloss.NewStyle().
-                PaddingLeft(1)
-	    }
-	}).
-        Border(lipgloss.NormalBorder()).
-        BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
-        Width(30).
-        Headers("Model", "Qty", "Price").
-        Rows(rows...)
+
+    columns := []table.Column{
+        {Title: "Model", Width: 10},
+        {Title: "Qty", Width: 5},
+        {Title: "Price", Width: 7},
+    }
+    s.InventoryTable = table.New(
+        table.WithColumns(columns),
+        table.WithRows(rows),
+        table.WithHeight(15),
+        )
+
+    style := table.DefaultStyles()
+    style.Header = style.Header.
+            BorderStyle(lipgloss.NormalBorder()).
+            BorderForeground(lipgloss.Color("240")).
+            BorderBottom(true).
+            Bold(false)
+    style.Selected = style.Selected.
+            Foreground(lipgloss.Color("229")).
+            Background(lipgloss.Color("57")).
+            Bold(false)
+    s.InventoryTable.SetStyles(style)
+
     return s
 }
 
