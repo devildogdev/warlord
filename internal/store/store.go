@@ -54,7 +54,7 @@ func New(region string) *Store {
     for model, price  := range Models {
         w := &Weapon{Name: model, Price: price, Qty: maxInventory}
         s.Inventory[model] = w
-        rows = append(rows, table.Row{w.Name, strconv.Itoa(w.Price), strconv.Itoa(w.Qty)})
+        rows = append(rows, table.Row{w.Name, strconv.Itoa(w.Qty), strconv.Itoa(w.Price)})
     }
 
     columns := []table.Column{
