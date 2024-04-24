@@ -9,6 +9,7 @@ import (
 
     "github.com/charmbracelet/lipgloss"
     "github.com/charmbracelet/bubbles/table"
+    //"github.com/wk8/go-ordered-map/v2"
 )
 
 type Player struct {
@@ -29,12 +30,20 @@ func New(name string) *Player {
         Inventory: make(map[string]int),
     }
 
+    for model := range store.Models {
+        p.Inventory[model] = 0
+    }
+
+    p.UpdateTable()
+
+    return p
+}
+
+func (p *Player) UpdateTable() {
     var rows []table.Row
 
-    for model, price := range store.Models {
-        p.Inventory[model] = 0
-        w := store.Weapon{Price: price, Qty: 0}
-        rows = append(rows, table.Row{model, strconv.Itoa(w.Qty)}) 
+    for model, qty := range p.Inventory {
+        rows = append(rows, table.Row{model, strconv.Itoa(qty)}) 
     }
 
     columns := []table.Column{
@@ -58,8 +67,6 @@ func New(name string) *Player {
             Background(lipgloss.Color("57")).
             Bold(false)
     p.Table.SetStyles(s)
-
-    return p
 }
 
 func (p *Player) Move(region string) error {
@@ -71,30 +78,33 @@ func (p *Player) Move(region string) error {
     return nil
 }
 
-func (p *Player) BuyWeapon(model *store.Weapon, qty int) error {
+func (p *Player) BuyWeapon(s *store.Store, w *store.Weapon, qty int) error {
     if qty <= 0 {
         return errors.New("Quantity must be greater than Zero!")
     }
-    cost := qty * model.Price
+    cost := qty * w.Price
     if p.Cash <= cost {
         return errors.New("Not enough cash!")
     } else {
         p.Cash -= cost
-        p.Inventory[model.Name] += qty
-        model.Qty -= qty
+        p.Inventory[w.Name] += qty
+        w.Qty -= qty
     }
+    s.UpdateTable()
+    p.UpdateTable()
     return nil
 }
 
-func (p *Player) SellWeapon(s *store.Weapon, qty int) error {
-    if len(p.Inventory) < 1 {
+func (p *Player) SellWeapon(s *store.Store, w *store.Weapon, qty int) error {
+    if p.Inventory[w.Name] < 1 {
         return errors.New("You don't have any weapons to sell")
-    } else if qty > len(p.Inventory) {
+    } else if qty > p.Inventory[w.Name] {
         return errors.New("You cannot sell more than you have")
     }
-    p.Cash += s.Price
-    p.Inventory[s.Name] -= qty
-    s.Qty -= qty
+    p.Cash += w.Price
+    p.Inventory[w.Name] -= qty
+    w.Qty -= qty
+    s.UpdateTable()
     return nil
 }
 

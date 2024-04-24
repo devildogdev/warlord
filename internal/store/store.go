@@ -49,14 +49,22 @@ func New(region string) *Store {
         Inventory: make(map[string]*Weapon),
     }
 
-    var rows []table.Row
-
     for model, price  := range Models {
         w := &Weapon{Name: model, Price: price, Qty: maxInventory}
         s.Inventory[model] = w
-        rows = append(rows, table.Row{w.Name, strconv.Itoa(w.Qty), strconv.Itoa(w.Price)})
     }
 
+    s.UpdateTable()
+
+    return s
+}
+
+func (s *Store) UpdateTable() {
+    var rows []table.Row
+
+    for _, w := range s.Inventory {
+        rows = append(rows, table.Row{w.Name, strconv.Itoa(w.Qty), strconv.Itoa(w.Price)})
+    }
     columns := []table.Column{
         {Title: "Model", Width: 10},
         {Title: "Qty", Width: 5},
@@ -80,7 +88,4 @@ func New(region string) *Store {
             Background(lipgloss.Color("57")).
             Bold(false)
     s.Table.SetStyles(style)
-
-    return s
 }
-

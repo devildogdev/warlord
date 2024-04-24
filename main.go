@@ -93,15 +93,17 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
             if s.Table.Focused() {
                 row := s.Table.SelectedRow()
                 model := row[0]
-                err := p.BuyWeapon(s.Inventory[model], 1)
+                err := p.BuyWeapon(s, s.Inventory[model], 1)
                 if err != nil {
+                    fmt.Println(err)
                     log.Fatal("No buy")
                 }
             } else if p.Table.Focused() {
                 row := p.Table.SelectedRow()
                 model := row[0]
-                err := p.SellWeapon(s.Inventory[model], 1)
+                err := p.SellWeapon(s, s.Inventory[model], 1)
                 if err != nil {
+                    fmt.Println(err)
                     log.Fatal("No sell")
                 }
             } else {
