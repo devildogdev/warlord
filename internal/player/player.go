@@ -6,7 +6,6 @@ import (
     "slices"
 
     "github.com/j-tew/warlord/internal/store"
-    "github.com/j-tew/warlord/internal/weapon"
 
     "github.com/charmbracelet/lipgloss"
     "github.com/charmbracelet/bubbles/table"
@@ -16,8 +15,8 @@ type Player struct {
     Name, Region string
     Health int8
     Cash, Bank int
-    Inventory map[string][]weapon.Weapon
-    InventoryTable table.Model
+    Inventory map[string]int
+    Table table.Model
 }
 
 func New(name string) *Player {
@@ -26,16 +25,16 @@ func New(name string) *Player {
         Health: 100,
         Cash: 15000,
         Bank: 0,
-        Inventory: make(map[string][]weapon.Weapon),
         Region: "North America", 
+        Inventory: make(map[string]int),
     }
 
-    for m := range weapon.Models {
-        p.Inventory[m] = make([]weapon.Weapon, 0)
-    }
     var rows []table.Row
-    for wm, wl := range p.Inventory {
-        rows = append(rows, table.Row{wm, strconv.Itoa(len(wl))}) 
+
+    for model, price := range store.Models {
+        p.Inventory[model] = 0
+        w := store.Weapon{Price: price, Qty: 0}
+        rows = append(rows, table.Row{model, strconv.Itoa(w.Qty)}) 
     }
 
     columns := []table.Column{
@@ -43,7 +42,7 @@ func New(name string) *Player {
         {Title: "Qty", Width: 10},
     }
 
-    p.InventoryTable = table.New(
+    p.Table = table.New(
             table.WithColumns(columns),
             table.WithRows(rows),
             table.WithHeight(15),
@@ -58,7 +57,7 @@ func New(name string) *Player {
             Foreground(lipgloss.Color("229")).
             Background(lipgloss.Color("57")).
             Bold(false)
-    p.InventoryTable.SetStyles(s)
+    p.Table.SetStyles(s)
 
     return p
 }
@@ -72,36 +71,29 @@ func (p *Player) Move(region string) error {
     return nil
 }
 
-func (p *Player) BuyWeapon(s *store.Store, model string, qty int) error {
+func (p *Player) BuyWeapon(model *store.Weapon, qty int) error {
     if qty <= 0 {
         return errors.New("Quantity must be greater than Zero!")
     }
-    cart := s.Inventory[model][:qty]
-    var cost int
-    for _, w := range cart {
-        cost += w.Price
-    }
-    if p.Cash >= cost {
+    cost := qty * model.Price
+    if p.Cash <= cost {
+        return errors.New("Not enough cash!")
+    } else {
         p.Cash -= cost
-        s.Inventory[model] = s.Inventory[model][qty:]
-        p.Inventory[model] = append(p.Inventory[model], cart...)
+        p.Inventory[model.Name] += qty
+        model.Qty -= qty
     }
     return nil
 }
 
-func (p *Player) SellWeapon(s *store.Store, model string, qty int) error {
+func (p *Player) SellWeapon(s *store.Weapon, qty int) error {
     if len(p.Inventory) < 1 {
         return errors.New("You don't have any weapons to sell")
     } else if qty > len(p.Inventory) {
         return errors.New("You cannot sell more than you have")
     }
-    var profit int
-    sold := p.Inventory[model][:qty]
-    for _, w := range sold {
-        profit += w.Price
-    }
-    p.Inventory[model] = p.Inventory[model][qty:]
-    s.Inventory[model] = append(s.Inventory[model], sold...)
+    p.Inventory[s.Name] -= qty
+    s.Qty -= qty
     return nil
 }
 

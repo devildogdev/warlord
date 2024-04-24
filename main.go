@@ -11,7 +11,6 @@ import (
 	"github.com/j-tew/warlord/internal/store"
 
 	"github.com/charmbracelet/bubbles/list"
-	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -83,7 +82,6 @@ func (m model) Init() tea.Cmd { return nil }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
     var cmd tea.Cmd
-    var w table.Row
     s := m.store
     p := m.player
     switch msg := msg.(type) {
@@ -92,15 +90,17 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
         case "q", "ctrl+c":
             return m, tea.Quit
         case "enter":
-            if s.InventoryTable.Focused() {
-                w = s.InventoryTable.SelectedRow()
-                err := p.BuyWeapon(s, w[0], 1)
+            if s.Table.Focused() {
+                row := s.Table.SelectedRow()
+                model := row[0]
+                err := p.BuyWeapon(s.Inventory[model], 1)
                 if err != nil {
                     log.Fatal("No buy")
                 }
-            } else if p.InventoryTable.Focused() {
-                w = p.InventoryTable.SelectedRow()
-                err := p.SellWeapon(s, w[0], 1)
+            } else if p.Table.Focused() {
+                row := p.Table.SelectedRow()
+                model := row[0]
+                err := p.SellWeapon(s.Inventory[model], 1)
                 if err != nil {
                     log.Fatal("No sell")
                 }
@@ -118,21 +118,18 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
     switch m.choice {
         case "Buy":
-            m.store.InventoryTable.Focus()
+            m.store.Table.Focus()
         
         case "Sell":
-            m.player.InventoryTable.Focus()
+            m.player.Table.Focus()
     }
 
-    if s.InventoryTable.Focused() {
-        s.InventoryTable, cmd = s.InventoryTable.Update(msg)
-    } else if p.InventoryTable.Focused() {
-        p.InventoryTable, cmd = p.InventoryTable.Update(msg)
+    if s.Table.Focused() {
+        s.Table, cmd = s.Table.Update(msg)
+    } else if p.Table.Focused() {
+        p.Table, cmd = p.Table.Update(msg)
     } else {
         m.list, cmd = m.list.Update(msg)
-    }
-    if len(w) > 0 {
-        fmt.Println(s.Inventory[w[0]])
     }
     return m, cmd
 }
@@ -146,7 +143,7 @@ func (m model) View() string {
         AlignHorizontal(lipgloss.Left).
         MarginTop(5)
 
-    stats := fmt.Sprintf("Health: %d\nBank: $%d\nCash: $%d", p.Health, p.Cash, p.Bank)
+    stats := fmt.Sprintf("Health: %d\nBank: $%d\nCash: $%d", p.Health, p.Bank, p.Cash)
     statsStyle := lipgloss.NewStyle().
         AlignHorizontal(lipgloss.Right).
         MarginTop(5)
@@ -162,7 +159,7 @@ func (m model) View() string {
         lipgloss.JoinVertical(
         lipgloss.Center,
         labelStyle.Render(p.Name),
-        p.InventoryTable.View(),
+        p.Table.View(),
         ),
     )
 
@@ -172,7 +169,7 @@ func (m model) View() string {
         lipgloss.JoinVertical(
         lipgloss.Center,
         labelStyle.Render(s.Region),
-        s.InventoryTable.View(),
+        s.Table.View(),
         ),
     )
 
