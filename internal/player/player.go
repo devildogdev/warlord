@@ -92,6 +92,7 @@ func (p *Player) SellWeapon(s *store.Weapon, qty int) error {
     } else if qty > len(p.Inventory) {
         return errors.New("You cannot sell more than you have")
     }
+    p.Cash += s.Price
     p.Inventory[s.Name] -= qty
     s.Qty -= qty
     return nil
