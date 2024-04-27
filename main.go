@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"strings"
 
@@ -82,35 +81,15 @@ func (m model) Init() tea.Cmd { return nil }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
     var cmd tea.Cmd
-    s := m.store
-    p := m.player
     switch msg := msg.(type) {
     case tea.KeyMsg:
         switch msg.String() {
         case "q", "ctrl+c":
             return m, tea.Quit
         case "enter":
-            if s.Table.Focused() {
-                row := s.Table.SelectedRow()
-                model := row[0]
-                err := p.BuyWeapon(s, s.Inventory[model], 1)
-                if err != nil {
-                    fmt.Println(err)
-                    log.Fatal("No buy")
-                }
-            } else if p.Table.Focused() {
-                row := p.Table.SelectedRow()
-                model := row[0]
-                err := p.SellWeapon(s, s.Inventory[model], 1)
-                if err != nil {
-                    fmt.Println(err)
-                    log.Fatal("No sell")
-                }
-            } else {
-                i, ok := m.list.SelectedItem().(item)
-                if ok {
-                    m.choice = string(i)
-                }
+            i, ok := m.list.SelectedItem().(item)
+            if ok {
+                m.choice = string(i)
             }
         }
     case tea.WindowSizeMsg:
@@ -118,21 +97,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
         height = msg.Height
     }
 
-    switch m.choice {
-        case "Buy":
-            m.store.Table.Focus()
-        
-        case "Sell":
-            m.player.Table.Focus()
-    }
-
-    if s.Table.Focused() {
-        s.Table, cmd = s.Table.Update(msg)
-    } else if p.Table.Focused() {
-        p.Table, cmd = p.Table.Update(msg)
-    } else {
-        m.list, cmd = m.list.Update(msg)
-    }
+    m.list, cmd = m.list.Update(msg)
     return m, cmd
 }
 
@@ -161,7 +126,7 @@ func (m model) View() string {
         lipgloss.JoinVertical(
         lipgloss.Center,
         labelStyle.Render(p.Name),
-        p.Table.View(),
+        p.Table.Render(),
         ),
     )
 
@@ -171,7 +136,7 @@ func (m model) View() string {
         lipgloss.JoinVertical(
         lipgloss.Center,
         labelStyle.Render(s.Region),
-        s.Table.View(),
+        s.Table.Render(),
         ),
     )
 

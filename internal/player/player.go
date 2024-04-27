@@ -8,7 +8,7 @@ import (
     "github.com/j-tew/warlord/internal/store"
 
     "github.com/charmbracelet/lipgloss"
-    "github.com/charmbracelet/bubbles/table"
+    "github.com/charmbracelet/lipgloss/table"
     //"github.com/wk8/go-ordered-map/v2"
 )
 
@@ -17,7 +17,7 @@ type Player struct {
     Health int8
     Cash, Bank int
     Inventory map[string]int
-    Table table.Model
+    Table *table.Table
 }
 
 func New(name string) *Player {
@@ -40,33 +40,28 @@ func New(name string) *Player {
 }
 
 func (p *Player) UpdateTable() {
-    var rows []table.Row
+    var rows [][]string
 
     for model, qty := range p.Inventory {
-        rows = append(rows, table.Row{model, strconv.Itoa(qty)}) 
+        rows = append(rows, []string{model, strconv.Itoa(qty)}) 
     }
 
-    columns := []table.Column{
-        {Title: "Model", Width: 10},
-        {Title: "Qty", Width: 10},
-    }
-
-    p.Table = table.New(
-            table.WithColumns(columns),
-            table.WithRows(rows),
-            table.WithHeight(15),
-        )
-    s := table.DefaultStyles()
-    s.Header = s.Header.
-            BorderStyle(lipgloss.NormalBorder()).
-            BorderForeground(lipgloss.Color("240")).
-            BorderBottom(true).
-            Bold(false)
-    s.Selected = s.Selected.
-            Foreground(lipgloss.Color("229")).
-            Background(lipgloss.Color("57")).
-            Bold(false)
-    p.Table.SetStyles(s)
+    p.Table = table.New().
+	StyleFunc(func(row, col int) lipgloss.Style {
+	    if row == 0 {
+		return lipgloss.NewStyle().
+		    Align(lipgloss.Center).
+		    Bold(true)
+	    } else {
+	        return lipgloss.NewStyle().
+                PaddingLeft(1)
+	    }
+	}).
+        Border(lipgloss.NormalBorder()).
+        BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
+        Width(30).
+        Headers("Model", "Qty").
+        Rows(rows...)
 }
 
 func (p *Player) Move(region string) error {

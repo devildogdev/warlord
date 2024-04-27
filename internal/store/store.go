@@ -4,7 +4,7 @@ import (
     "strconv"
 
     "github.com/charmbracelet/lipgloss"
-    "github.com/charmbracelet/bubbles/table"
+    "github.com/charmbracelet/lipgloss/table"
 )
 
 const maxInventory int = 100
@@ -40,7 +40,7 @@ type Store struct {
     Region string
     Event string
     Inventory map[string]*Weapon
-    Table table.Model
+    Table *table.Table
 }
 
 func New(region string) *Store {
@@ -60,32 +60,26 @@ func New(region string) *Store {
 }
 
 func (s *Store) UpdateTable() {
-    var rows []table.Row
+    var rows [][]string
 
     for _, w := range s.Inventory {
-        rows = append(rows, table.Row{w.Name, strconv.Itoa(w.Qty), strconv.Itoa(w.Price)})
-    }
-    columns := []table.Column{
-        {Title: "Model", Width: 10},
-        {Title: "Qty", Width: 5},
-        {Title: "Price", Width: 7},
+        rows = append(rows, []string{w.Name, strconv.Itoa(w.Qty), strconv.Itoa(w.Price)})
     }
 
-    s.Table = table.New(
-        table.WithColumns(columns),
-        table.WithRows(rows),
-        table.WithHeight(15),
-        )
-
-    style := table.DefaultStyles()
-    style.Header = style.Header.
-            BorderStyle(lipgloss.NormalBorder()).
-            BorderForeground(lipgloss.Color("240")).
-            BorderBottom(true).
-            Bold(false)
-    style.Selected = style.Selected.
-            Foreground(lipgloss.Color("229")).
-            Background(lipgloss.Color("57")).
-            Bold(false)
-    s.Table.SetStyles(style)
+    s.Table = table.New().
+	StyleFunc(func(row, col int) lipgloss.Style {
+	    if row == 0 {
+		return lipgloss.NewStyle().
+		    Align(lipgloss.Center).
+		    Bold(true)
+	    } else {
+	        return lipgloss.NewStyle().
+                PaddingLeft(1)
+	    }
+	}).
+        Border(lipgloss.NormalBorder()).
+        BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
+        Width(30).
+        Headers("Model", "Qty", "Price").
+        Rows(rows...)
 }
