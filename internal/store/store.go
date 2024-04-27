@@ -18,7 +18,20 @@ var Regions = []string{
     "Europe",
 }
 
-var Models = map[string]int {
+var Models = []string {
+    "G19",
+    "1911",
+    "M4",
+    "AK-47",
+    "RPG",
+    "Mk19",
+    "M24",
+    "M107",
+    "M2",
+    "GAU-17",
+}
+
+var Prices = map[string]int {
     "G19": 600,
     "1911": 1000,
     "M4": 1400,
@@ -49,8 +62,8 @@ func New(region string) *Store {
         Inventory: make(map[string]*Weapon),
     }
 
-    for model, price  := range Models {
-        w := &Weapon{Name: model, Price: price, Qty: maxInventory}
+    for _, model := range Models {
+        w := &Weapon{Name: model, Price: Prices[model], Qty: maxInventory}
         s.Inventory[model] = w
     }
 
@@ -62,7 +75,8 @@ func New(region string) *Store {
 func (s *Store) UpdateTable() {
     var rows [][]string
 
-    for _, w := range s.Inventory {
+    for _, m := range Models {
+        w := s.Inventory[m]
         rows = append(rows, []string{w.Name, strconv.Itoa(w.Qty), strconv.Itoa(w.Price)})
     }
 

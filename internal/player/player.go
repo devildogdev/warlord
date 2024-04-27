@@ -9,7 +9,6 @@ import (
 
     "github.com/charmbracelet/lipgloss"
     "github.com/charmbracelet/lipgloss/table"
-    //"github.com/wk8/go-ordered-map/v2"
 )
 
 type Player struct {
@@ -30,7 +29,7 @@ func New(name string) *Player {
         Inventory: make(map[string]int),
     }
 
-    for model := range store.Models {
+    for _, model := range store.Models {
         p.Inventory[model] = 0
     }
 
@@ -42,8 +41,8 @@ func New(name string) *Player {
 func (p *Player) UpdateTable() {
     var rows [][]string
 
-    for model, qty := range p.Inventory {
-        rows = append(rows, []string{model, strconv.Itoa(qty)}) 
+    for _, m := range store.Models {
+        rows = append(rows, []string{m, strconv.Itoa(p.Inventory[m])}) 
     }
 
     p.Table = table.New().
