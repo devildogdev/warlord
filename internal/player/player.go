@@ -1,14 +1,14 @@
 package player
 
 import (
-    "errors"
-    "strconv"
-    "slices"
+	"errors"
+	"slices"
+	"strconv"
 
-    "github.com/j-tew/warlord/internal/store"
+	"github.com/j-tew/warlord/internal/store"
 
-    "github.com/charmbracelet/lipgloss"
-    "github.com/charmbracelet/lipgloss/table"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/lipgloss/table"
 )
 
 type Player struct {
@@ -51,14 +51,17 @@ func (p *Player) UpdateTable() {
 		return lipgloss.NewStyle().
 		    Align(lipgloss.Center).
 		    Bold(true)
+	    } else if col == 1 {
+	        return lipgloss.NewStyle().
+                    Align(lipgloss.Center)
 	    } else {
 	        return lipgloss.NewStyle().
-                PaddingLeft(1)
-	    }
+                    PaddingLeft(1)
+            }
 	}).
         Border(lipgloss.NormalBorder()).
         BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
-        Width(30).
+        Width(20).
         Headers("Model", "Qty").
         Rows(rows...)
 }

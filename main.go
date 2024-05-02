@@ -1,17 +1,17 @@
 package main
 
 import (
-	"fmt"
-	"io"
-	"os"
-	"strings"
+    "fmt"
+    "io"
+    "os"
+    "strings"
 
-	"github.com/j-tew/warlord/internal/player"
-	"github.com/j-tew/warlord/internal/store"
+    "github.com/j-tew/warlord/internal/player"
+    "github.com/j-tew/warlord/internal/store"
 
-	"github.com/charmbracelet/bubbles/list"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+    "github.com/charmbracelet/bubbles/list"
+    tea "github.com/charmbracelet/bubbletea"
+    "github.com/charmbracelet/lipgloss"
 )
 
 const (
@@ -34,6 +34,7 @@ Watch out for law enforcement!
 )
 
 var width, height int
+
 var (
     itemStyle = lipgloss.NewStyle().AlignHorizontal(lipgloss.Center)
     selectedItemStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("170")).AlignHorizontal(lipgloss.Center)
@@ -41,6 +42,11 @@ var (
     labelStyle = lipgloss.NewStyle().
         MarginBottom(1).
         Bold(true)
+    mainMenu = []list.Item{
+        item("Buy"),
+        item("Sell"),
+        item("Travel"),
+    }
 )
 
 type item string
@@ -74,27 +80,50 @@ type model struct {
     player *player.Player
     store  *store.Store
     list   list.Model
-    choice string
+    state string
 }
 
 func (m model) Init() tea.Cmd { return nil }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
     var cmd tea.Cmd
+
     switch msg := msg.(type) {
     case tea.KeyMsg:
         switch msg.String() {
         case "q", "ctrl+c":
             return m, tea.Quit
-        case "enter":
+        case "enter", "l":
             i, ok := m.list.SelectedItem().(item)
             if ok {
-                m.choice = string(i)
+                m.state = string(i)
+            }
+        case "backspace", "h":
+            if m.state != "" {
+                m.state = ""
             }
         }
     case tea.WindowSizeMsg:
         width = msg.Width
         height = msg.Height
+    }
+
+    menu := []list.Item{}
+    switch m.state {
+    case "Buy":
+        for m := range m.store.Inventory {
+            menu = append(menu, item(m))
+        }
+        m.list = list.New(menu, itemDelegate{}, 10, 15)
+    case "Sell":
+        m.list = list.New(menu, itemDelegate{}, 10, 15)
+        for m, q := range m.player.Inventory {
+            if q > 0 {
+                menu = append(menu, item(m))
+            }
+        }
+    default:
+        m.list = list.New(mainMenu, itemDelegate{}, 10, 15)
     }
 
     m.list, cmd = m.list.Update(msg)
@@ -104,6 +133,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m model) View() string {
     s := m.store
     p := m.player
+
+    m.list.SetShowHelp(false)
+    m.list.SetShowTitle(false)
+    m.list.SetShowStatusBar(false)
+    m.list.SetFilteringEnabled(false)
 
     choices := m.list.View()
     choicesStyle := lipgloss.NewStyle().
@@ -153,21 +187,12 @@ func main() {
     p := player.New("Outlaw")
     s := store.New(p.Region)
 
-    items := []list.Item{
-        item("Buy"),
-        item("Sell"),
-        item("Travel"),
-    }
-
     m := model{
         player: p,
         store: s,
-        list: list.New(items, itemDelegate{}, 8, 10),
+        state: "",
+        list: list.New(mainMenu, itemDelegate{}, 15, 10),
     }
-    m.list.SetShowHelp(false)
-    m.list.SetShowTitle(false)
-    m.list.SetShowStatusBar(false)
-    m.list.SetFilteringEnabled(false)
 
     if _, err := tea.NewProgram(m, tea.WithAltScreen()).Run(); err != nil {
         fmt.Println("Error running program:", err)

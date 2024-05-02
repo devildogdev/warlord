@@ -86,10 +86,13 @@ func (s *Store) UpdateTable() {
 		return lipgloss.NewStyle().
 		    Align(lipgloss.Center).
 		    Bold(true)
+	    } else if col == 1 {
+	        return lipgloss.NewStyle().
+                    Align(lipgloss.Center)
 	    } else {
 	        return lipgloss.NewStyle().
-                PaddingLeft(1)
-	    }
+                    PaddingLeft(1)
+            }
 	}).
         Border(lipgloss.NormalBorder()).
         BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("99"))).
