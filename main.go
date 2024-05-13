@@ -2,10 +2,9 @@ package main
 
 import (
     "fmt"
-    "io"
     "os"
-    "strings"
 
+    "github.com/j-tew/warlord/internal/ui"
     "github.com/j-tew/warlord/internal/player"
     "github.com/j-tew/warlord/internal/store"
 
@@ -15,77 +14,41 @@ import (
 )
 
 const (
-    intro string =  `
-Warlord
+    mainView sessionState = iota
+)
 
-You are a small time arms dealer, trying to make
-a name for yourself. To get you started, you get
-a little capital from an "investor". They aren't
-exactly a Credit Union, so this is going to cost
-you. Keep an eye on your debt. The interest tacks
-on each week. You have one year (52 weeks) build
-your fortune.
-
-Watch out for law enforcement!
-
-`
-    weeks int = 52
-    maxInvetory int = 100
+var (
+    storeStyle = lipgloss.NewStyle().MarginRight(5)
+    playerStyle = lipgloss.NewStyle().MarginLeft(5)
+    labelStyle = lipgloss.NewStyle().
+                    MarginBottom(1).
+                    Bold(true)
+    choicesStyle = lipgloss.NewStyle().
+                    AlignHorizontal(lipgloss.Left).
+                    MarginTop(5)
+    statsStyle = lipgloss.NewStyle().
+                    AlignHorizontal(lipgloss.Right).
+                    MarginTop(5)
+    screenStyle = lipgloss.NewStyle().
+                    Width(width).
+                    Height(height).
+                    Align(lipgloss.Center, lipgloss.Center)
 )
 
 var width, height int
 
-var (
-    itemStyle = lipgloss.NewStyle().AlignHorizontal(lipgloss.Center)
-    selectedItemStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("170")).AlignHorizontal(lipgloss.Center)
-    tableStyle = lipgloss.NewStyle().Margin(5)
-    labelStyle = lipgloss.NewStyle().
-        MarginBottom(1).
-        Bold(true)
-    mainMenu = []list.Item{
-        item("Buy"),
-        item("Sell"),
-        item("Travel"),
-    }
-)
+type sessionState int
 
-type item string
-
-func (i item) FilterValue() string { return "" }
-
-type itemDelegate struct{}
-
-func (d itemDelegate) Height() int { return 1 }
-func (d itemDelegate) Spacing() int { return 0 }
-func (d itemDelegate) Update(_ tea.Msg, _ *list.Model) tea.Cmd { return nil }
-func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
-    i, ok := listItem.(item)
-    if !ok {
-            return
-    }
-
-    str := string(i)
-
-    fn := itemStyle.Render
-    if index == m.Index() {
-            fn = func(s ...string) string {
-                    return selectedItemStyle.Render(strings.Join(s, " "))
-            }
-    }
-
-    fmt.Fprint(w, fn(str))
+type mainModel struct {
+    player  *player.Player
+    store   *store.Store
+    menu    string
+    list    list.Model
 }
 
-type model struct {
-    player *player.Player
-    store  *store.Store
-    list   list.Model
-    state string
-}
+func (m mainModel) Init() tea.Cmd { return nil }
 
-func (m model) Init() tea.Cmd { return nil }
-
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
     var cmd tea.Cmd
 
     switch msg := msg.(type) {
@@ -93,14 +56,32 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
         switch msg.String() {
         case "q", "ctrl+c":
             return m, tea.Quit
-        case "enter", "l":
-            i, ok := m.list.SelectedItem().(item)
-            if ok {
-                m.state = string(i)
+        }
+        switch m.menu {
+        case "Main":
+            switch msg.String() {
+            case "q", "ctrl+c":
+                return m, tea.Quit
+            case "enter", "l":
+                i, ok := m.list.SelectedItem().(ui.Item)
+                if ok {
+                    m.menu = string(i)
+                }
             }
-        case "backspace", "h":
-            if m.state != "" {
-                m.state = ""
+        case "Buy":
+            switch msg.String() {
+            case "q", "ctrl+c":
+                return m, tea.Quit
+            case "enter", "l":
+                i, ok := m.list.SelectedItem().(ui.Item)
+                if ok {
+                    m.player.BuyWeapon(m.store, m.store.Inventory[string(i)], 1)
+                }
+            case "backspace", "h":
+                if m.menu != "Main" {
+                    m.menu = "Main"
+                    m.list = ui.MainMenu
+                }
             }
         }
     case tea.WindowSizeMsg:
@@ -108,29 +89,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
         height = msg.Height
     }
 
-    menu := []list.Item{}
-    switch m.state {
-    case "Buy":
-        for m := range m.store.Inventory {
-            menu = append(menu, item(m))
-        }
-        m.list = list.New(menu, itemDelegate{}, 10, 15)
-    case "Sell":
-        m.list = list.New(menu, itemDelegate{}, 10, 15)
-        for m, q := range m.player.Inventory {
-            if q > 0 {
-                menu = append(menu, item(m))
-            }
-        }
-    default:
-        m.list = list.New(mainMenu, itemDelegate{}, 10, 15)
-    }
-
     m.list, cmd = m.list.Update(msg)
     return m, cmd
 }
 
-func (m model) View() string {
+func (m mainModel) View() string {
     s := m.store
     p := m.player
 
@@ -140,21 +103,8 @@ func (m model) View() string {
     m.list.SetFilteringEnabled(false)
 
     choices := m.list.View()
-    choicesStyle := lipgloss.NewStyle().
-        AlignHorizontal(lipgloss.Left).
-        MarginTop(5)
 
     stats := fmt.Sprintf("Health: %d\nBank: $%d\nCash: $%d", p.Health, p.Bank, p.Cash)
-    statsStyle := lipgloss.NewStyle().
-        AlignHorizontal(lipgloss.Right).
-        MarginTop(5)
-
-    screenStyle := lipgloss.NewStyle().
-        Width(width).
-        Height(height).
-        Align(lipgloss.Center, lipgloss.Center)
-
-    playerStyle := lipgloss.NewStyle().MarginLeft(5)
 
     playerTable := playerStyle.Render(
         lipgloss.JoinVertical(
@@ -163,8 +113,6 @@ func (m model) View() string {
         p.Table.Render(),
         ),
     )
-
-    storeStyle := lipgloss.NewStyle().MarginRight(5)
 
     storeTable := storeStyle.Render(
         lipgloss.JoinVertical(
@@ -187,11 +135,11 @@ func main() {
     p := player.New("Outlaw")
     s := store.New(p.Region)
 
-    m := model{
+    m := mainModel{
         player: p,
         store: s,
-        state: "",
-        list: list.New(mainMenu, itemDelegate{}, 15, 10),
+        menu: "Main",
+        list: ui.MainMenu,
     }
 
     if _, err := tea.NewProgram(m, tea.WithAltScreen()).Run(); err != nil {
