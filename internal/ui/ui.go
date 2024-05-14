@@ -33,15 +33,6 @@ var (
     itemStyle = lipgloss.NewStyle().AlignHorizontal(lipgloss.Center)
     selectedItemStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("170")).AlignHorizontal(lipgloss.Center)
     tableStyle = lipgloss.NewStyle().Margin(5)
-    MainMenu = list.New([]list.Item{
-            Item("Buy"),
-            Item("Sell"),
-            Item("Travel"),
-        },
-        ItemDelegate{},
-        10,
-        15,
-    )
 )
 
 type Item string
@@ -71,6 +62,25 @@ func (d ItemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
     fmt.Fprint(w, fn(str))
 }
 
+func MainMenu() list.Model {
+    return list.New([]list.Item{
+            Item("Buy"),
+            Item("Sell"),
+            Item("Travel"),
+        },
+        ItemDelegate{},
+        10,
+        15,
+    )
+}
+
+func BuyMenu(models []string) list.Model {
+    opts := []list.Item{}
+    for _, m := range models {
+        opts = append(opts, Item(m))
+    }
+    return list.New(opts, ItemDelegate{}, 10, 15)
+}
 // Update
 //    for m := range m.store.Inventory {
 //        storeGuns = append(storeGuns, item(m))

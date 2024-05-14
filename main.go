@@ -65,7 +65,11 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
             case "enter", "l":
                 i, ok := m.list.SelectedItem().(ui.Item)
                 if ok {
-                    m.menu = string(i)
+                    switch string(i) {
+                    case "Buy":
+                        menu := ui.BuyMenu(store.Models)
+                        m.list = menu
+                    }
                 }
             }
         case "Buy":
@@ -79,8 +83,7 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
                 }
             case "backspace", "h":
                 if m.menu != "Main" {
-                    m.menu = "Main"
-                    m.list = ui.MainMenu
+                    m.list = ui.MainMenu()
                 }
             }
         }
@@ -139,7 +142,7 @@ func main() {
         player: p,
         store: s,
         menu: "Main",
-        list: ui.MainMenu,
+        list: ui.MainMenu(),
     }
 
     if _, err := tea.NewProgram(m, tea.WithAltScreen()).Run(); err != nil {
