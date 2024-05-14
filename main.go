@@ -67,8 +67,8 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
                 if ok {
                     switch string(i) {
                     case "Buy":
-                        menu := ui.BuyMenu(store.Models)
-                        m.list = menu
+                        m.menu = "Buy" 
+                        m.list = ui.BuyMenu(store.Models)
                     }
                 }
             }
@@ -83,6 +83,7 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
                 }
             case "backspace", "h":
                 if m.menu != "Main" {
+                    m.menu = "Main"
                     m.list = ui.MainMenu()
                 }
             }
