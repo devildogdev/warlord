@@ -93,6 +93,14 @@ func SellMenu(inventory map[string]int) list.Model {
     }
     return list.New(opts, ItemDelegate{}, 10, 15)
 }
+
+func TravelMenu(region map[string]int) list.Model {
+    opts := []list.Item{}
+    for _, r := range store.Regions {
+        opts = append(opts, Item(r))
+    }
+    return list.New(opts, ItemDelegate{}, 10, 15)
+}
 // Update
 //    for m := range m.store.Inventory {
 //        storeGuns = append(storeGuns, item(m))

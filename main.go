@@ -72,6 +72,9 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
                     case "Sell":
                         m.menu = "Sell" 
                         m.list = ui.SellMenu(m.player.Inventory)
+                    case "Travel":
+                        m.menu = "Travel" 
+                        m.list = ui.TravelMenu(m.player.Inventory)
                     }
                 }
             }
@@ -98,6 +101,21 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
                 i, ok := m.list.SelectedItem().(ui.Item)
                 if ok {
                     m.player.SellWeapon(m.store, m.store.Inventory[string(i)], 1)
+                }
+            case "backspace", "h":
+                if m.menu != "Main" {
+                    m.menu = "Main"
+                    m.list = ui.MainMenu()
+                }
+            }
+        case "Travel":
+            switch msg.String() {
+            case "q", "ctrl+c":
+                return m, tea.Quit
+            case "enter", "l":
+                i, ok := m.list.SelectedItem().(ui.Item)
+                if ok {
+                    m.player.Move(string(i))
                 }
             case "backspace", "h":
                 if m.menu != "Main" {
@@ -139,7 +157,7 @@ func (m mainModel) View() string {
     storeTable := storeStyle.Render(
         lipgloss.JoinVertical(
         lipgloss.Center,
-        labelStyle.Render(s.Region),
+        labelStyle.Render(p.Region),
         s.Table.Render(),
         ),
     )
