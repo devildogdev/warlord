@@ -68,7 +68,10 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
                     switch string(i) {
                     case "Buy":
                         m.menu = "Buy" 
-                        m.list = ui.BuyMenu(store.Models)
+                        m.list = ui.BuyMenu()
+                    case "Sell":
+                        m.menu = "Sell" 
+                        m.list = ui.SellMenu(m.player.Inventory)
                     }
                 }
             }
@@ -80,6 +83,21 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
                 i, ok := m.list.SelectedItem().(ui.Item)
                 if ok {
                     m.player.BuyWeapon(m.store, m.store.Inventory[string(i)], 1)
+                }
+            case "backspace", "h":
+                if m.menu != "Main" {
+                    m.menu = "Main"
+                    m.list = ui.MainMenu()
+                }
+            }
+        case "Sell":
+            switch msg.String() {
+            case "q", "ctrl+c":
+                return m, tea.Quit
+            case "enter", "l":
+                i, ok := m.list.SelectedItem().(ui.Item)
+                if ok {
+                    m.player.SellWeapon(m.store, m.store.Inventory[string(i)], 1)
                 }
             case "backspace", "h":
                 if m.menu != "Main" {

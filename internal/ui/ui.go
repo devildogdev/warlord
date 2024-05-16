@@ -1,13 +1,15 @@
 package ui
 
 import (
-    "io"
-    "fmt"
-    "strings"
+	"fmt"
+	"io"
+	"strings"
 
-    "github.com/charmbracelet/bubbles/list"
-    tea "github.com/charmbracelet/bubbletea"
-    "github.com/charmbracelet/lipgloss"
+    "github.com/j-tew/warlord/internal/store"
+
+	"github.com/charmbracelet/bubbles/list"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 const (
@@ -74,10 +76,20 @@ func MainMenu() list.Model {
     )
 }
 
-func BuyMenu(models []string) list.Model {
+func BuyMenu() list.Model {
     opts := []list.Item{}
-    for _, m := range models {
+    for _, m := range store.Models {
         opts = append(opts, Item(m))
+    }
+    return list.New(opts, ItemDelegate{}, 10, 15)
+}
+
+func SellMenu(inventory map[string]int) list.Model {
+    opts := []list.Item{}
+    for _, m := range store.Models {
+        if inventory[m] > 0 {
+            opts = append(opts, Item(m))
+        }
     }
     return list.New(opts, ItemDelegate{}, 10, 15)
 }

@@ -100,8 +100,9 @@ func (p *Player) SellWeapon(s *store.Store, w *store.Weapon, qty int) error {
     }
     p.Cash += w.Price
     p.Inventory[w.Name] -= qty
-    w.Qty -= qty
+    w.Qty += qty
     s.UpdateTable()
+    p.UpdateTable()
     return nil
 }
 
