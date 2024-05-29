@@ -13,10 +13,6 @@ import (
     "github.com/charmbracelet/lipgloss"
 )
 
-const (
-    mainView sessionState = iota
-)
-
 var (
     storeStyle = lipgloss.NewStyle().MarginRight(5)
     playerStyle = lipgloss.NewStyle().MarginLeft(5)
@@ -36,8 +32,6 @@ var (
 )
 
 var width, height int
-
-type sessionState int
 
 type mainModel struct {
     player  *player.Player
@@ -74,7 +68,7 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
                         m.list = ui.SellMenu(m.player.Inventory)
                     case "Travel":
                         m.menu = "Travel" 
-                        m.list = ui.TravelMenu(m.player.Inventory)
+                        m.list = ui.TravelMenu()
                     }
                 }
             }
@@ -115,7 +109,9 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
             case "enter", "l":
                 i, ok := m.list.SelectedItem().(ui.Item)
                 if ok {
-                    m.player.Move(string(i))
+                    r := string(i)
+                    m.player.Move(r)
+                    m.store = store.New(r)
                 }
             case "backspace", "h":
                 if m.menu != "Main" {

@@ -1,48 +1,54 @@
 package store
 
 import (
-    "strconv"
+	"math/rand/v2"
+	"strconv"
+	"time"
 
-    "github.com/charmbracelet/lipgloss"
-    "github.com/charmbracelet/lipgloss/table"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/lipgloss/table"
 )
 
-const maxInventory int = 100
+const (
+    maxInventory int = 100
+)
 
-var Regions = []string{
-    "North America",
-    "South America",
-    "South East Asia",
-    "North Africa",
-    "Middle East",
-    "Europe",
-}
+var (
+    Regions = []string{
+        "North America",
+        "South America",
+        "South East Asia",
+        "North Africa",
+        "Middle East",
+        "Europe",
+    }
 
-var Models = []string {
-    "G19",
-    "1911",
-    "M4",
-    "AK-47",
-    "RPG",
-    "Mk19",
-    "M24",
-    "M107",
-    "M2",
-    "GAU-17",
-}
+    Models = []string {
+        "G19",
+        "1911",
+        "M4",
+        "AK-47",
+        "RPG",
+        "Mk19",
+        "M24",
+        "M107",
+        "M2",
+        "GAU-17",
+    }
 
-var Prices = map[string]int {
-    "G19": 600,
-    "1911": 1000,
-    "M4": 1400,
-    "AK-47": 2200,
-    "RPG": 15000,
-    "Mk19": 41000,
-    "M24": 18000,
-    "M107": 27000,
-    "M2": 62000,
-    "GAU-17": 250000,
-}
+    Prices = map[string]int {
+        "G19": 600,
+        "1911": 1000,
+        "M4": 1400,
+        "AK-47": 2200,
+        "RPG": 15000,
+        "Mk19": 41000,
+        "M24": 18000,
+        "M107": 27000,
+        "M2": 62000,
+        "GAU-17": 250000,
+    }
+)
 
 type Weapon struct {
     Name string
@@ -53,6 +59,7 @@ type Store struct {
     Region string
     Event string
     Inventory map[string]*Weapon
+    Prices map[string]int
     Table *table.Table
 }
 
@@ -61,9 +68,14 @@ func New(region string) *Store {
         Region: region,
         Inventory: make(map[string]*Weapon),
     }
-
+    
     for _, model := range Models {
-        w := &Weapon{Name: model, Price: Prices[model], Qty: maxInventory}
+        base := Prices[model]
+        src := rand.NewPCG(uint64(time.Now().Unix()), uint64(base))
+        r := rand.New(src)
+        upper, lower := int(float64(base) * float64(1.2)), int(float64(base) * float64(0.8))
+        price := r.IntN(upper - lower) + lower
+        w := &Weapon{Name: model, Price: price, Qty: maxInventory}
         s.Inventory[model] = w
     }
 
