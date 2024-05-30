@@ -14,21 +14,19 @@ import (
 )
 
 var (
-    storeStyle = lipgloss.NewStyle().MarginRight(5)
-    playerStyle = lipgloss.NewStyle().MarginLeft(5)
+    storeStyle = lipgloss.NewStyle().
+                    MarginRight(5).
+                    MarginBottom(1)
+    playerStyle = lipgloss.NewStyle().
+                    MarginLeft(5).
+                    MarginBottom(1)
     labelStyle = lipgloss.NewStyle().
                     MarginBottom(1).
                     Bold(true)
     choicesStyle = lipgloss.NewStyle().
-                    AlignHorizontal(lipgloss.Left).
-                    MarginTop(5)
+                    AlignHorizontal(lipgloss.Left)
     statsStyle = lipgloss.NewStyle().
-                    AlignHorizontal(lipgloss.Right).
-                    MarginTop(5)
-    screenStyle = lipgloss.NewStyle().
-                    Width(width).
-                    Height(height).
-                    Align(lipgloss.Center, lipgloss.Center)
+                    AlignHorizontal(lipgloss.Right)
 )
 
 var width, height int
@@ -46,6 +44,9 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
     var cmd tea.Cmd
 
     switch msg := msg.(type) {
+    case tea.WindowSizeMsg:
+        width = msg.Width
+        height = msg.Height
     case tea.KeyMsg:
         switch msg.String() {
         case "q", "ctrl+c":
@@ -120,9 +121,6 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
                 }
             }
         }
-    case tea.WindowSizeMsg:
-        width = msg.Width
-        height = msg.Height
     }
 
     m.list, cmd = m.list.Update(msg)
@@ -138,9 +136,16 @@ func (m mainModel) View() string {
     m.list.SetShowStatusBar(false)
     m.list.SetFilteringEnabled(false)
 
-    choices := m.list.View()
+    choices := choicesStyle.Render(m.list.View())
 
-    stats := fmt.Sprintf("Health: %d\nBank: $%d\nCash: $%d", p.Health, p.Bank, p.Cash)
+    stats := statsStyle.Render(
+        fmt.Sprintf(
+            "Health: %d\nBank: $%d\nCash: $%d",
+            p.Health,
+            p.Bank,
+            p.Cash,
+        ),
+    )
 
     playerTable := playerStyle.Render(
         lipgloss.JoinVertical(
@@ -160,11 +165,15 @@ func (m mainModel) View() string {
 
     tables := lipgloss.JoinHorizontal(
         lipgloss.Top,
-        lipgloss.JoinVertical(lipgloss.Left, storeTable, choicesStyle.Render(choices)),
-        lipgloss.JoinVertical(lipgloss.Right, playerTable, statsStyle.Render(stats)),
+        lipgloss.JoinVertical(lipgloss.Left, storeTable, choices),
+        lipgloss.JoinVertical(lipgloss.Right, playerTable, stats),
     )
 
-    return screenStyle.Render(tables)
+    return lipgloss.NewStyle().
+                    Width(width).
+                    Height(height).
+                    Align(lipgloss.Center, lipgloss.Center).
+                    Render(tables)
 }
 
 func main() {
