@@ -1,6 +1,7 @@
 package store
 
 import (
+        "fmt"
 	"math/rand/v2"
 	"strconv"
 	"time"
@@ -89,7 +90,13 @@ func (s *Store) UpdateTable() {
 
     for _, m := range Models {
         w := s.Inventory[m]
-        rows = append(rows, []string{w.Name, strconv.Itoa(w.Qty), strconv.Itoa(w.Price)})
+        rows = append(
+            rows, []string{
+                w.Name,
+                strconv.Itoa(w.Qty),
+                fmt.Sprintf("$%d", w.Price),
+            },
+        )
     }
 
     s.Table = table.New().

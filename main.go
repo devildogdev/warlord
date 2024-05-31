@@ -53,11 +53,17 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
             return m, tea.Quit
         }
         switch m.menu {
+        case "Intro":
+            switch msg.String() {
+            case "enter":
+                m.menu = "Main"
+                m.list = ui.MainMenu()
+            }
         case "Main":
             switch msg.String() {
             case "q", "ctrl+c":
                 return m, tea.Quit
-            case "enter", "l":
+            case "enter":
                 i, ok := m.list.SelectedItem().(ui.Item)
                 if ok {
                     switch string(i) {
@@ -77,12 +83,12 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
             switch msg.String() {
             case "q", "ctrl+c":
                 return m, tea.Quit
-            case "enter", "l":
+            case "enter":
                 i, ok := m.list.SelectedItem().(ui.Item)
                 if ok {
                     m.player.BuyWeapon(m.store, m.store.Inventory[string(i)], 1)
                 }
-            case "backspace", "h":
+            case "backspace":
                 if m.menu != "Main" {
                     m.menu = "Main"
                     m.list = ui.MainMenu()
@@ -92,12 +98,12 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
             switch msg.String() {
             case "q", "ctrl+c":
                 return m, tea.Quit
-            case "enter", "l":
+            case "enter":
                 i, ok := m.list.SelectedItem().(ui.Item)
                 if ok {
                     m.player.SellWeapon(m.store, m.store.Inventory[string(i)], 1)
                 }
-            case "backspace", "h":
+            case "backspace":
                 if m.menu != "Main" {
                     m.menu = "Main"
                     m.list = ui.MainMenu()
@@ -107,14 +113,14 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
             switch msg.String() {
             case "q", "ctrl+c":
                 return m, tea.Quit
-            case "enter", "l":
+            case "enter":
                 i, ok := m.list.SelectedItem().(ui.Item)
                 if ok {
                     r := string(i)
                     m.player.Move(r)
                     m.store = store.New(r)
                 }
-            case "backspace", "h":
+            case "backspace":
                 if m.menu != "Main" {
                     m.menu = "Main"
                     m.list = ui.MainMenu()
@@ -128,52 +134,59 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m mainModel) View() string {
-    s := m.store
-    p := m.player
+    var layout string
 
-    m.list.SetShowHelp(false)
-    m.list.SetShowTitle(false)
-    m.list.SetShowStatusBar(false)
-    m.list.SetFilteringEnabled(false)
+    if m.menu == "Intro" {
+        layout = ui.Intro
+    } else {
 
-    choices := choicesStyle.Render(m.list.View())
+        s := m.store
+        p := m.player
 
-    stats := statsStyle.Render(
-        fmt.Sprintf(
-            "Health: %d\nBank: $%d\nCash: $%d",
-            p.Health,
-            p.Bank,
-            p.Cash,
-        ),
-    )
+        m.list.SetShowHelp(false)
+        m.list.SetShowTitle(false)
+        m.list.SetShowStatusBar(false)
+        m.list.SetFilteringEnabled(false)
 
-    playerTable := playerStyle.Render(
-        lipgloss.JoinVertical(
-        lipgloss.Center,
-        labelStyle.Render(p.Name),
-        p.Table.Render(),
-        ),
-    )
+        choices := choicesStyle.Render(m.list.View())
 
-    storeTable := storeStyle.Render(
-        lipgloss.JoinVertical(
-        lipgloss.Center,
-        labelStyle.Render(p.Region),
-        s.Table.Render(),
-        ),
-    )
+        stats := statsStyle.Render(
+            fmt.Sprintf(
+                "Week: %d\nHealth: %d\nCash: $%d",
+                p.Week,
+                p.Health,
+                p.Cash,
+            ),
+        )
 
-    tables := lipgloss.JoinHorizontal(
-        lipgloss.Top,
-        lipgloss.JoinVertical(lipgloss.Left, storeTable, choices),
-        lipgloss.JoinVertical(lipgloss.Right, playerTable, stats),
-    )
+        playerTable := playerStyle.Render(
+            lipgloss.JoinVertical(
+            lipgloss.Center,
+            labelStyle.Render(p.Name),
+            p.Table.Render(),
+            ),
+        )
+
+        storeTable := storeStyle.Render(
+            lipgloss.JoinVertical(
+            lipgloss.Center,
+            labelStyle.Render(p.Region),
+            s.Table.Render(),
+            ),
+        )
+
+        layout = lipgloss.JoinHorizontal(
+            lipgloss.Top,
+            lipgloss.JoinVertical(lipgloss.Left, storeTable, choices),
+            lipgloss.JoinVertical(lipgloss.Right, playerTable, stats),
+        )
+    }
 
     return lipgloss.NewStyle().
                     Width(width).
                     Height(height).
                     Align(lipgloss.Center, lipgloss.Center).
-                    Render(tables)
+                    Render(layout)
 }
 
 func main() {
@@ -183,7 +196,7 @@ func main() {
     m := mainModel{
         player: p,
         store: s,
-        menu: "Main",
+        menu: "Intro",
         list: ui.MainMenu(),
     }
 

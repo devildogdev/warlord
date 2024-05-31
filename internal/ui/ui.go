@@ -13,7 +13,7 @@ import (
 )
 
 const (
-    intro string =  `
+    Intro string =  `
 Warlord
 
 You are a small time arms dealer, trying to make

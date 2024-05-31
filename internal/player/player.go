@@ -14,7 +14,7 @@ import (
 type Player struct {
     Name, Region string
     Health int8
-    Cash, Bank int
+    Cash, Week int
     Inventory map[string]int
     Table *table.Table
 }
@@ -24,7 +24,7 @@ func New(name string) *Player {
         Name: name,
         Health: 100,
         Cash: 15000,
-        Bank: 0,
+        Week: 1,
         Region: "North America", 
         Inventory: make(map[string]int),
     }
@@ -69,6 +69,7 @@ func (p *Player) UpdateTable() {
 func (p *Player) Move(region string) error {
     if slices.Contains(store.Regions, region) {
         p.Region = region
+        p.Week += 1
     } else {
         return errors.New("Invalid region")
     }

@@ -7,11 +7,9 @@ A spin on the classic "Drug Wars" where you play as an arms dealer instead of a 
 ## To Do & Notes
 
 - [X] Implement store and buying and selling functionality
-- [/] UI
+- [X] UI
 - [ ] Fix UI spacing
-- [ ] Switch to interactive bubble table
-- [ ] Handle focus switch
-- [ ] More options in UI
+- [X] More options in UI
 - [ ] Factor multipliers for prices
 - [ ] Random Events
 
