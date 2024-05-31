@@ -137,7 +137,7 @@ func (m mainModel) View() string {
     var layout string
 
     if m.menu == "Intro" {
-        layout = ui.Intro
+        layout = ui.Intro()
     } else {
 
         s := m.store

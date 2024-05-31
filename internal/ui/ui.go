@@ -13,8 +13,18 @@ import (
 )
 
 const (
-    Intro string =  `
-Warlord
+    title string = `
+---      ---    ------    -----------  ----           --------   -----------  ----------   
+***  **  ***   ********   ***********  ****          **********  ***********  ************ 
+---  --  ---  ----------  ----    ---  ----         ----    ---- ----    ---  --        -- 
+***  **  *** ****    **** *********    ****         ***      *** *********    **        ** 
+---  --  --- ------------ ---------    ----         ---      --- ---------    --        -- 
+************ ************ ****  ****   ************ ****    **** ****  ****   **        ** 
+ ----------  ----    ---- ----   ----  ------------  ----------  ----   ----  ------------ 
+  ********   ****    **** ****    **** ************   ********   ****    **** **********   
+                                                                                           
+`
+    story string =  `
 
 You are a small time arms dealer, trying to make
 a name for yourself. To get you started, you get
@@ -33,7 +43,7 @@ Watch out for law enforcement!
 
 var (
     itemStyle = lipgloss.NewStyle().AlignHorizontal(lipgloss.Center)
-    selectedItemStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("170")).AlignHorizontal(lipgloss.Center)
+    selectedItemStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("2")).AlignHorizontal(lipgloss.Center)
     tableStyle = lipgloss.NewStyle().Margin(5)
 )
 
@@ -62,6 +72,13 @@ func (d ItemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
     }
 
     fmt.Fprint(w, fn(str))
+}
+
+func Intro() string {
+    titleStyle := lipgloss.NewStyle().
+                    Bold(true).
+                    Foreground(lipgloss.Color("2"))
+    return lipgloss.JoinVertical(lipgloss.Center, titleStyle.Render(title), story)
 }
 
 func MainMenu() list.Model {
