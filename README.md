@@ -2,22 +2,24 @@
 
 A spin on the classic "Drug Wars" where you play as an arms dealer instead of a drug dealer.
 
-## *work in progress*
+### *work in progress*
 
 ## To Do & Notes
 
 - [X] Implement store and buying and selling functionality
 - [X] UI
-- [ ] Fix UI spacing
 - [X] More options in UI
-- [ ] Factor multipliers for prices
+- [ ] Cleanup UI logic to allow for easier feature builds
+- [ ] Factor multipliers for prices (this is kinda done, but should be better)
+- [ ] Implement Loan Shark
 - [ ] Random Events
+- [ ] Fix UI centering
 
 ### Mechanics
 
 - Loan shark
 - Inventory and Marketplace
-- Travel between locations each day
+- Travel between locations each week
 - Random events
 - Final score
 

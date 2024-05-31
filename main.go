@@ -152,10 +152,10 @@ func (m mainModel) View() string {
 
         stats := statsStyle.Render(
             fmt.Sprintf(
-                "Week: %d\nHealth: %d\nCash: $%d",
+                "Week: %d\nCash: $%d\nHealth: %d",
                 p.Week,
-                p.Health,
                 p.Cash,
+                p.Health,
             ),
         )
 
