@@ -60,7 +60,7 @@ func (p *Player) UpdateTable() {
             }
 	}).
         Border(lipgloss.NormalBorder()).
-        BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("12"))).
+        BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("2"))).
         Width(20).
         Headers("Model", "Qty").
         Rows(rows...)

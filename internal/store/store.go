@@ -114,7 +114,7 @@ func (s *Store) UpdateTable() {
             }
 	}).
         Border(lipgloss.NormalBorder()).
-        BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("12"))).
+        BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("2"))).
         Width(30).
         Headers("Model", "Qty", "Price").
         Rows(rows...)
