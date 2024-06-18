@@ -74,7 +74,7 @@ func New(region string) *Store {
         base := Prices[model]
         src := rand.NewPCG(uint64(time.Now().Unix()), uint64(base))
         r := rand.New(src)
-        upper, lower := int(float64(base) * float64(1.2)), int(float64(base) * float64(0.8))
+        upper, lower := int(float64(base) * float64(1.5)), int(float64(base) * float64(0.5))
         price := r.IntN(upper - lower) + lower
         w := &Weapon{Name: model, Price: price, Qty: maxInventory}
         s.Inventory[model] = w

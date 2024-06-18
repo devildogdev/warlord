@@ -115,3 +115,8 @@ func (p *Player) Damage(value int8) {
     }
 }
 
+type LoanShark struct {
+    balance int
+    interestRate float32
+}
+
