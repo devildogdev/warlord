@@ -119,6 +119,8 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
                     r := string(i)
                     m.player.Move(r)
                     m.store = store.New(r)
+                    m.menu = "Main"
+                    m.list = ui.MainMenu()
                 }
             case "backspace":
                 if m.menu != "Main" {
