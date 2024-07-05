@@ -13,6 +13,17 @@ import (
     "github.com/charmbracelet/lipgloss"
 )
 
+type state int
+
+const (
+    nav state = iota
+    intro
+    buy 
+    sell
+    travel
+    event
+)
+
 var (
     storeStyle = lipgloss.NewStyle().
                     MarginRight(5).
@@ -31,16 +42,16 @@ var (
 
 var width, height int
 
-type mainModel struct {
+type Model struct {
     player  *player.Player
-    store   *store.Store
-    menu    string
+    store  *store.Store
+    state   state
     list    list.Model
 }
 
-func (m mainModel) Init() tea.Cmd { return nil }
+func (m Model) Init() tea.Cmd { return nil }
 
-func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
     var cmd tea.Cmd
 
     switch msg := msg.(type) {
@@ -52,14 +63,14 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
         case "q", "ctrl+c":
             return m, tea.Quit
         }
-        switch m.menu {
-        case "Intro":
+        switch m.state {
+        case intro:
             switch msg.String() {
             case "enter":
-                m.menu = "Main"
+                m.state = nav
                 m.list = ui.MainMenu()
             }
-        case "Main":
+        case nav:
             switch msg.String() {
             case "q", "ctrl+c":
                 return m, tea.Quit
@@ -68,18 +79,18 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
                 if ok {
                     switch string(i) {
                     case "Buy":
-                        m.menu = "Buy" 
+                        m.state = buy
                         m.list = ui.BuyMenu()
                     case "Sell":
-                        m.menu = "Sell" 
+                        m.state = sell 
                         m.list = ui.SellMenu(m.player.Inventory)
                     case "Travel":
-                        m.menu = "Travel" 
+                        m.state = travel 
                         m.list = ui.TravelMenu()
                     }
                 }
             }
-        case "Buy":
+        case buy:
             switch msg.String() {
             case "q", "ctrl+c":
                 return m, tea.Quit
@@ -89,12 +100,12 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
                     m.player.BuyWeapon(m.store, m.store.Inventory[string(i)], 1)
                 }
             case "backspace":
-                if m.menu != "Main" {
-                    m.menu = "Main"
+                if m.state != nav {
+                    m.state = nav
                     m.list = ui.MainMenu()
                 }
             }
-        case "Sell":
+        case sell:
             switch msg.String() {
             case "q", "ctrl+c":
                 return m, tea.Quit
@@ -104,12 +115,12 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
                     m.player.SellWeapon(m.store, m.store.Inventory[string(i)], 1)
                 }
             case "backspace":
-                if m.menu != "Main" {
-                    m.menu = "Main"
+                if m.state != nav {
+                    m.state = nav
                     m.list = ui.MainMenu()
                 }
             }
-        case "Travel":
+        case travel:
             switch msg.String() {
             case "q", "ctrl+c":
                 return m, tea.Quit
@@ -119,12 +130,12 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
                     r := string(i)
                     m.player.Move(r)
                     m.store = store.New(r)
-                    m.menu = "Main"
+                    m.state =nav
                     m.list = ui.MainMenu()
                 }
             case "backspace":
-                if m.menu != "Main" {
-                    m.menu = "Main"
+                if m.state != nav {
+                    m.state =nav
                     m.list = ui.MainMenu()
                 }
             }
@@ -135,10 +146,10 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
     return m, cmd
 }
 
-func (m mainModel) View() string {
+func (m Model) View() string {
     var layout string
 
-    if m.menu == "Intro" {
+    if m.state == intro {
         layout = ui.Intro()
     } else {
 
@@ -195,10 +206,10 @@ func main() {
     p := player.New("Outlaw")
     s := store.New(p.Region)
 
-    m := mainModel{
+    m := Model{
         player: p,
         store: s,
-        menu: "Intro",
+        state: nav,
         list: ui.MainMenu(),
     }
 
