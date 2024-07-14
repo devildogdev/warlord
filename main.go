@@ -3,6 +3,8 @@ package main
 import (
     "fmt"
     "os"
+    "time"
+    "math/rand/v2"
 
     "github.com/j-tew/warlord/internal/ui"
     "github.com/j-tew/warlord/internal/player"
@@ -47,6 +49,7 @@ type Model struct {
     store  *store.Store
     state   state
     list    list.Model
+    event   bool
 }
 
 func (m Model) Init() tea.Cmd { return nil }
@@ -89,8 +92,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
                 case travel:
                     m.player.Move(s)
                     m.store = store.New(s)
-                    m.state = nav
-                    m.list = ui.MainMenu()
+                    src := rand.NewPCG(uint64(time.Now().Unix()), uint64(10))
+                    r := rand.New(src)
+                    // Randomizing event trigger
+                    if r.IntN(5) == 2 {
+                        m.event = true
+                        m.state = law
+                        m.list = ui.LawMenu()
+                    } else {
+                        m.state = nav
+                        m.list = ui.MainMenu()
+                    }
                 case law:
                     switch s {
                     case "Run":
@@ -98,6 +110,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
                         if p.Escape() {
                             m.state = nav
                             m.list = ui.MainMenu()
+                            m.event = false
                         } else {
                             p.Damage(5)
                         }
@@ -111,15 +124,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
                 }
             }
         case tea.KeyBackspace:
-            m.state = nav
-            m.list = ui.MainMenu()
+            if !m.event {
+                m.state = nav
+                m.list = ui.MainMenu()
+            }
         }
-    }
-
-    if m.player.Week == 2 {
-        m.state = law
-        m.list = ui.LawMenu()
-        m.player.Week += 1
     }
 
     m.list.SetShowHelp(false)
@@ -193,6 +202,7 @@ func main() {
         store: s,
         state: intro,
         list: ui.MainMenu(),
+        event: false,
     }
 
     if _, err := tea.NewProgram(m, tea.WithAltScreen()).Run(); err != nil {

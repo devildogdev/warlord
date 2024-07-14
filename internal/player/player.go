@@ -120,7 +120,7 @@ func (p *Player) Damage(value int8) {
 func (p *Player) Escape() bool {
     src := rand.NewPCG(uint64(time.Now().Unix()), uint64(10))
     r := rand.New(src)
-    return r.IntN(10) == 7
+    return r.IntN(4) == 2
 }
 
 type LoanShark struct {
