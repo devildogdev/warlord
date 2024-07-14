@@ -5,7 +5,8 @@ import (
 	"io"
 	"strings"
 
-    "github.com/j-tew/warlord/internal/store"
+	"github.com/j-tew/warlord/internal/player"
+	"github.com/j-tew/warlord/internal/store"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -117,12 +118,17 @@ func TravelMenu() list.Model {
     return list.New(opts, ItemDelegate{}, 10, 15)
 }
 
-func LawWarning() string {
+func LawWarning(p *player.Player) string {
     warning := "This is the Police, FREEZE!"
+    stats := fmt.Sprintf("Health: %d\nCash: $%d", p.Health, p.Cash)
+    statsStyle := lipgloss.NewStyle().
+                    MarginBottom(2).
+                    AlignHorizontal(lipgloss.Center)
     warningStyle := lipgloss.NewStyle().
                     Bold(true).
-                    Foreground(lipgloss.Color("1"))
-    return warningStyle.Render(warning)
+                    Foreground(lipgloss.Color("1")).
+                    MarginBottom(5)
+    return lipgloss.JoinVertical(lipgloss.Center, warningStyle.Render(warning), statsStyle.Render(stats))
 }
 
 func LawMenu() list.Model {

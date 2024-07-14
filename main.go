@@ -137,7 +137,7 @@ func (m Model) View() string {
     if m.state == intro {
         layout = ui.Intro()
     } else if m.state == law {
-        layout = lipgloss.JoinVertical(lipgloss.Center, ui.LawWarning(), m.list.View())
+        layout = lipgloss.JoinVertical(lipgloss.Center, ui.LawWarning(m.player), m.list.View())
     } else {
 
         s := m.store
