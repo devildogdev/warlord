@@ -63,14 +63,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
         case "q", "ctrl+c":
             return m, tea.Quit
         case "enter":
-            switch m.state {
-            case intro:
-                m.state = nav
-                m.list = ui.MainMenu()
-            case nav:
-                i, ok := m.list.SelectedItem().(ui.Item)
-                if ok {
-                    switch string(i) {
+            i, ok := m.list.SelectedItem().(ui.Item)
+            s := string(i)
+            if ok {
+                switch m.state {
+                case intro:
+                    m.state = nav
+                    m.list = ui.MainMenu()
+                case nav:
+                    switch s {
                     case "Buy":
                         m.state = buy
                         m.list = ui.BuyMenu()
@@ -81,24 +82,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
                         m.state = travel 
                         m.list = ui.TravelMenu()
                     }
-                }
-            case buy:
-                i, ok := m.list.SelectedItem().(ui.Item)
-                if ok {
+                case buy:
                     m.player.BuyWeapon(m.store, m.store.Inventory[string(i)], 1)
-                }
-            case sell:
-                i, ok := m.list.SelectedItem().(ui.Item)
-                if ok {
+                case sell:
                     m.player.SellWeapon(m.store, m.store.Inventory[string(i)], 1)
-                }
-            case travel:
-                i, ok := m.list.SelectedItem().(ui.Item)
-                if ok {
+                case travel:
                     r := string(i)
                     m.player.Move(r)
                     m.store = store.New(r)
-                    m.state =nav
+                    m.state = nav
                     m.list = ui.MainMenu()
                 }
             }
