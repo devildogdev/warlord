@@ -21,7 +21,7 @@ const (
     buy 
     sell
     travel
-    event
+    law
 )
 
 var (
@@ -87,11 +87,27 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
                 case sell:
                     m.player.SellWeapon(m.store, m.store.Inventory[string(i)], 1)
                 case travel:
-                    r := string(i)
-                    m.player.Move(r)
-                    m.store = store.New(r)
+                    m.player.Move(s)
+                    m.store = store.New(s)
                     m.state = nav
                     m.list = ui.MainMenu()
+                case law:
+                    switch s {
+                    case "Run":
+                        p := m.player
+                        if p.Escape() {
+                            m.state = nav
+                            m.list = ui.MainMenu()
+                        } else {
+                            p.Damage(5)
+                        }
+                    // case "Bribe":
+                    //     m.state = sell 
+                    //     m.list = ui.SellMenu(m.player.Inventory)
+                    // case "Attack":
+                    //     m.state = travel 
+                    //     m.list = ui.TravelMenu()
+                    }
                 }
             }
         case tea.KeyBackspace:
@@ -99,6 +115,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
             m.list = ui.MainMenu()
         }
     }
+
+    if m.player.Week == 2 {
+        m.state = law
+        m.list = ui.LawMenu()
+        m.player.Week += 1
+    }
+
+    m.list.SetShowHelp(false)
+    m.list.SetShowTitle(false)
+    m.list.SetShowStatusBar(false)
+    m.list.SetFilteringEnabled(false)
 
     m.list, cmd = m.list.Update(msg)
     return m, cmd
@@ -109,15 +136,12 @@ func (m Model) View() string {
 
     if m.state == intro {
         layout = ui.Intro()
+    } else if m.state == law {
+        layout = lipgloss.JoinVertical(lipgloss.Center, ui.LawWarning(), m.list.View())
     } else {
 
         s := m.store
         p := m.player
-
-        m.list.SetShowHelp(false)
-        m.list.SetShowTitle(false)
-        m.list.SetShowStatusBar(false)
-        m.list.SetFilteringEnabled(false)
 
         choices := choicesStyle.Render(m.list.View())
 

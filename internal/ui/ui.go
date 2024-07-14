@@ -117,3 +117,23 @@ func TravelMenu() list.Model {
     return list.New(opts, ItemDelegate{}, 10, 15)
 }
 
+func LawWarning() string {
+    warning := "This is the Police, FREEZE!"
+    warningStyle := lipgloss.NewStyle().
+                    Bold(true).
+                    Foreground(lipgloss.Color("1"))
+    return warningStyle.Render(warning)
+}
+
+func LawMenu() list.Model {
+    return list.New([]list.Item{
+            Item("Run"),
+            // Item("Bribe"),
+            // Item("Attack"),
+        },
+        ItemDelegate{},
+        10,
+        15,
+    )
+}
+
