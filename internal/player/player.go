@@ -4,6 +4,8 @@ import (
 	"errors"
 	"slices"
 	"strconv"
+        "time"
+        "math/rand/v2"
 
 	"github.com/j-tew/warlord/internal/store"
 
@@ -116,7 +118,9 @@ func (p *Player) Damage(value int8) {
 }
 
 func (p *Player) Escape() bool {
-    return false
+    src := rand.NewPCG(uint64(time.Now().Unix()), uint64(10))
+    r := rand.New(src)
+    return r.IntN(10) == 7
 }
 
 type LoanShark struct {
