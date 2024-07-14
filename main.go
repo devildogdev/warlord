@@ -62,19 +62,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
         switch msg.String() {
         case "q", "ctrl+c":
             return m, tea.Quit
-        }
-        switch m.state {
-        case intro:
-            switch msg.String() {
-            case "enter":
+        case "enter":
+            switch m.state {
+            case intro:
                 m.state = nav
                 m.list = ui.MainMenu()
-            }
-        case nav:
-            switch msg.String() {
-            case "q", "ctrl+c":
-                return m, tea.Quit
-            case "enter":
+            case nav:
                 i, ok := m.list.SelectedItem().(ui.Item)
                 if ok {
                     switch string(i) {
@@ -89,52 +82,22 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
                         m.list = ui.TravelMenu()
                     }
                 }
-            }
-        case buy:
-            switch msg.String() {
-            case "q", "ctrl+c":
-                return m, tea.Quit
-            case "enter":
+            case buy:
                 i, ok := m.list.SelectedItem().(ui.Item)
                 if ok {
                     m.player.BuyWeapon(m.store, m.store.Inventory[string(i)], 1)
                 }
-            case "backspace":
-                if m.state != nav {
-                    m.state = nav
-                    m.list = ui.MainMenu()
-                }
-            }
-        case sell:
-            switch msg.String() {
-            case "q", "ctrl+c":
-                return m, tea.Quit
-            case "enter":
+            case sell:
                 i, ok := m.list.SelectedItem().(ui.Item)
                 if ok {
                     m.player.SellWeapon(m.store, m.store.Inventory[string(i)], 1)
                 }
-            case "backspace":
-                if m.state != nav {
-                    m.state = nav
-                    m.list = ui.MainMenu()
-                }
-            }
-        case travel:
-            switch msg.String() {
-            case "q", "ctrl+c":
-                return m, tea.Quit
-            case "enter":
+            case travel:
                 i, ok := m.list.SelectedItem().(ui.Item)
                 if ok {
                     r := string(i)
                     m.player.Move(r)
                     m.store = store.New(r)
-                    m.state =nav
-                    m.list = ui.MainMenu()
-                }
-            case "backspace":
-                if m.state != nav {
                     m.state =nav
                     m.list = ui.MainMenu()
                 }
