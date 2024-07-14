@@ -26,10 +26,10 @@ const (
 
 var (
     storeStyle = lipgloss.NewStyle().
-                    MarginRight(5).
+                    MarginLeft(5).
                     MarginBottom(1)
     playerStyle = lipgloss.NewStyle().
-                    MarginLeft(5).
+                    MarginRight(5).
                     MarginBottom(1)
     labelStyle = lipgloss.NewStyle().
                     MarginBottom(1).
@@ -190,8 +190,8 @@ func (m Model) View() string {
 
         layout = lipgloss.JoinHorizontal(
             lipgloss.Top,
-            lipgloss.JoinVertical(lipgloss.Left, storeTable, choices),
-            lipgloss.JoinVertical(lipgloss.Right, playerTable, stats),
+            lipgloss.JoinVertical(lipgloss.Left, playerTable, choices),
+            lipgloss.JoinVertical(lipgloss.Right, storeTable, stats),
         )
     }
 
@@ -209,7 +209,7 @@ func main() {
     m := Model{
         player: p,
         store: s,
-        state: nav,
+        state: intro,
         list: ui.MainMenu(),
     }
 
