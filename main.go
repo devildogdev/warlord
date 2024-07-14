@@ -59,10 +59,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
         width = msg.Width
         height = msg.Height
     case tea.KeyMsg:
-        switch msg.String() {
-        case "q", "ctrl+c":
+        switch msg.Type {
+        case tea.KeyCtrlC:
             return m, tea.Quit
-        case "enter":
+        case tea.KeyEnter:
             i, ok := m.list.SelectedItem().(ui.Item)
             s := string(i)
             if ok {
@@ -94,6 +94,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
                     m.list = ui.MainMenu()
                 }
             }
+        case tea.KeyBackspace:
+            m.state = nav
+            m.list = ui.MainMenu()
         }
     }
 
