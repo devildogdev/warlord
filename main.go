@@ -95,7 +95,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
                     src := rand.NewPCG(uint64(time.Now().Unix()), uint64(10))
                     r := rand.New(src)
                     // Randomizing event trigger
-                    if r.IntN(5) == 2 {
+                    if r.IntN(100) % 3 == 0 {
                         m.event = true
                         m.state = law
                         m.list = ui.LawMenu()
@@ -114,9 +114,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
                         } else {
                             p.Damage(5)
                         }
-                    // case "Bribe":
-                    //     m.state = sell 
-                    //     m.list = ui.SellMenu(m.player.Inventory)
+                    case "Bribe":
+                        p := m.player
+                        if p.Bribe(4000) {
+                            m.state = nav
+                            m.list = ui.MainMenu()
+                            m.event = false
+                        }
                     // case "Attack":
                     //     m.state = travel 
                     //     m.list = ui.TravelMenu()

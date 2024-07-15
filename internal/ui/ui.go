@@ -134,7 +134,7 @@ func LawWarning(p *player.Player) string {
 func LawMenu() list.Model {
     return list.New([]list.Item{
             Item("Run"),
-            // Item("Bribe"),
+            Item("Bribe"),
             // Item("Attack"),
         },
         ItemDelegate{},

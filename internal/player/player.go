@@ -123,6 +123,10 @@ func (p *Player) Escape() bool {
     return r.IntN(4) == 2
 }
 
+func (p *Player) Bribe(amount int) bool {
+    return amount >= 5000
+}
+
 type LoanShark struct {
     balance int
     interestRate float32
