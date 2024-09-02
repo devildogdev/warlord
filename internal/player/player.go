@@ -2,12 +2,12 @@ package player
 
 import (
 	"errors"
+	"math/rand/v2"
 	"slices"
 	"strconv"
-        "time"
-        "math/rand/v2"
+	"time"
 
-	"github.com/j-tew/warlord/internal/store"
+	"github.com/devildogdev/warlord/internal/store"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
@@ -27,7 +27,7 @@ func New(name string) *Player {
         Health: 100,
         Cash: 15000,
         Week: 1,
-        Region: "North America", 
+        Region: "North America",
         Inventory: make(map[string]int),
     }
 
@@ -44,7 +44,7 @@ func (p *Player) UpdateTable() {
     var rows [][]string
 
     for _, m := range store.Models {
-        rows = append(rows, []string{m, strconv.Itoa(p.Inventory[m])}) 
+        rows = append(rows, []string{m, strconv.Itoa(p.Inventory[m])})
     }
 
     p.Table = table.New().
@@ -131,4 +131,3 @@ type LoanShark struct {
     balance int
     interestRate float32
 }
-

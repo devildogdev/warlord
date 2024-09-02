@@ -1,7 +1,7 @@
 package store
 
 import (
-        "fmt"
+	"fmt"
 	"math/rand/v2"
 	"strconv"
 	"time"
@@ -69,7 +69,7 @@ func New(region string) *Store {
         Region: region,
         Inventory: make(map[string]*Weapon),
     }
-    
+
     for _, model := range Models {
         base := Prices[model]
         src := rand.NewPCG(uint64(time.Now().Unix()), uint64(base))

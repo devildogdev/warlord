@@ -5,8 +5,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/j-tew/warlord/internal/player"
-	"github.com/j-tew/warlord/internal/store"
+	"github.com/devildogdev/warlord/internal/player"
+	"github.com/devildogdev/warlord/internal/store"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -14,16 +14,16 @@ import (
 )
 
 const (
-    title string = `
-██╗    ██╗ █████╗ ██████╗ ██╗      ██████╗ ██████╗ ██████╗ 
+	title string = `
+██╗    ██╗ █████╗ ██████╗ ██╗      ██████╗ ██████╗ ██████╗
 ██║    ██║██╔══██╗██╔══██╗██║     ██╔═══██╗██╔══██╗██╔══██╗
 ██║ █╗ ██║███████║██████╔╝██║     ██║   ██║██████╔╝██║  ██║
 ██║███╗██║██╔══██║██╔══██╗██║     ██║   ██║██╔══██╗██║  ██║
 ╚███╔███╔╝██║  ██║██║  ██║███████╗╚██████╔╝██║  ██║██████╔╝
- ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚═╝  ╚═╝╚═════╝ 
-                                                           
+ ╚══╝╚══╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚═╝  ╚═╝╚═════╝
+
 `
-    story string =  `
+	story string = `
 
 You are a small time arms dealer, trying to make
 a name for yourself. To get you started, you get
@@ -36,14 +36,14 @@ your fortune.
 Watch out for law enforcement!
 
 `
-    weeks int = 52
-    maxInvetory int = 100
+	weeks       int = 52
+	maxInvetory int = 100
 )
 
 var (
-    itemStyle = lipgloss.NewStyle().AlignHorizontal(lipgloss.Center)
-    selectedItemStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("2")).AlignHorizontal(lipgloss.Center)
-    tableStyle = lipgloss.NewStyle().Margin(5)
+	itemStyle         = lipgloss.NewStyle().AlignHorizontal(lipgloss.Center)
+	selectedItemStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("2")).AlignHorizontal(lipgloss.Center)
+	tableStyle        = lipgloss.NewStyle().Margin(5)
 )
 
 type Item string
@@ -52,94 +52,93 @@ func (i Item) FilterValue() string { return "" }
 
 type ItemDelegate struct{}
 
-func (d ItemDelegate) Height() int { return 1 }
-func (d ItemDelegate) Spacing() int { return 0 }
+func (d ItemDelegate) Height() int                             { return 1 }
+func (d ItemDelegate) Spacing() int                            { return 0 }
 func (d ItemDelegate) Update(_ tea.Msg, _ *list.Model) tea.Cmd { return nil }
 func (d ItemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
-    i, ok := listItem.(Item)
-    if !ok {
-            return
-    }
+	i, ok := listItem.(Item)
+	if !ok {
+		return
+	}
 
-    str := string(i)
+	str := string(i)
 
-    fn := itemStyle.Render
-    if index == m.Index() {
-            fn = func(s ...string) string {
-                    return selectedItemStyle.Render(strings.Join(s, " "))
-            }
-    }
+	fn := itemStyle.Render
+	if index == m.Index() {
+		fn = func(s ...string) string {
+			return selectedItemStyle.Render(strings.Join(s, " "))
+		}
+	}
 
-    fmt.Fprint(w, fn(str))
+	fmt.Fprint(w, fn(str))
 }
 
 func Intro() string {
-    titleStyle := lipgloss.NewStyle().
-                    Bold(true).
-                    Foreground(lipgloss.Color("2"))
-    return lipgloss.JoinVertical(lipgloss.Center, titleStyle.Render(title), story)
+	titleStyle := lipgloss.NewStyle().
+		Bold(true).
+		Foreground(lipgloss.Color("2"))
+	return lipgloss.JoinVertical(lipgloss.Center, titleStyle.Render(title), story)
 }
 
 func MainMenu() list.Model {
-    return list.New([]list.Item{
-            Item("Buy"),
-            Item("Sell"),
-            Item("Travel"),
-        },
-        ItemDelegate{},
-        10,
-        15,
-    )
+	return list.New([]list.Item{
+		Item("Buy"),
+		Item("Sell"),
+		Item("Travel"),
+	},
+		ItemDelegate{},
+		10,
+		15,
+	)
 }
 
 func BuyMenu() list.Model {
-    opts := []list.Item{}
-    for _, m := range store.Models {
-        opts = append(opts, Item(m))
-    }
-    return list.New(opts, ItemDelegate{}, 10, 15)
+	opts := []list.Item{}
+	for _, m := range store.Models {
+		opts = append(opts, Item(m))
+	}
+	return list.New(opts, ItemDelegate{}, 10, 15)
 }
 
 func SellMenu(inventory map[string]int) list.Model {
-    opts := []list.Item{}
-    for _, m := range store.Models {
-        if inventory[m] > 0 {
-            opts = append(opts, Item(m))
-        }
-    }
-    return list.New(opts, ItemDelegate{}, 10, 15)
+	opts := []list.Item{}
+	for _, m := range store.Models {
+		if inventory[m] > 0 {
+			opts = append(opts, Item(m))
+		}
+	}
+	return list.New(opts, ItemDelegate{}, 10, 15)
 }
 
 func TravelMenu() list.Model {
-    opts := []list.Item{}
-    for _, r := range store.Regions {
-        opts = append(opts, Item(r))
-    }
-    return list.New(opts, ItemDelegate{}, 10, 15)
+	opts := []list.Item{}
+	for _, r := range store.Regions {
+		opts = append(opts, Item(r))
+	}
+	return list.New(opts, ItemDelegate{}, 10, 15)
 }
 
 func LawWarning(p *player.Player) string {
-    warning := "This is the Police, FREEZE!"
-    stats := fmt.Sprintf("Health: %d\nCash: $%d", p.Health, p.Cash)
-    statsStyle := lipgloss.NewStyle().
-                    MarginBottom(2).
-                    AlignHorizontal(lipgloss.Center)
-    warningStyle := lipgloss.NewStyle().
-                    Bold(true).
-                    Foreground(lipgloss.Color("1")).
-                    MarginBottom(5)
-    return lipgloss.JoinVertical(lipgloss.Center, warningStyle.Render(warning), statsStyle.Render(stats))
+	warning := "This is the Police, FREEZE!"
+	stats := fmt.Sprintf("Health: %d\nCash: $%d", p.Health, p.Cash)
+	statsStyle := lipgloss.NewStyle().
+		MarginBottom(2).
+		AlignHorizontal(lipgloss.Center)
+	warningStyle := lipgloss.NewStyle().
+		Bold(true).
+		Foreground(lipgloss.Color("1")).
+		MarginBottom(5)
+	return lipgloss.JoinVertical(lipgloss.Center, warningStyle.Render(warning), statsStyle.Render(stats))
 }
 
 func LawMenu() list.Model {
-    return list.New([]list.Item{
-            Item("Run"),
-            Item("Bribe"),
-            // Item("Attack"),
-        },
-        ItemDelegate{},
-        10,
-        15,
-    )
+	return list.New([]list.Item{
+		Item("Run"),
+		Item("Bribe"),
+		// Item("Attack"),
+	},
+		ItemDelegate{},
+		10,
+		15,
+	)
 }
-
