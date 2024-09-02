@@ -4,6 +4,4 @@ A spin on the classic 1984 MS-DOS game, [Drug Wars](https://en.wikipedia.org/wik
 
 ## Game Intro
 
-You are a small time arms dealer, trying to make a name for yourself. To get you started, you get a little capital from
-an *"investor"*. They aren't exactly a Credit Union, so this is going to cost you. Keep an eye on your debt. The interest tacks on each week.
-You have one year (52 weeks) build your fortune. Watch out for law enforcement.
+![Screenshot of the Warlord game introduction screen](./screenshots/warlord_intro.png)
